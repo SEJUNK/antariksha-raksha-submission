@@ -1,0 +1,275 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; background: #040a17; overflow: hidden; }
+  #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #040a17;
+    font-family: "Segoe UI", system-ui, sans-serif; color: #e7eef8; }
+  .layer { position: absolute; inset: 0; }
+  #shotwrap { overflow: hidden; }
+  #shotimg { position: absolute; left: 0; top: 0; transform-origin: 0 0; image-rendering: auto; }
+  .hl { position: absolute; border: 3px solid #5cc8ec; border-radius: 8px;
+    box-shadow: 0 0 0 4px rgba(92,200,236,0.18), 0 0 26px rgba(92,200,236,0.45); }
+  .hl.amber { border-color: #f0b955; box-shadow: 0 0 0 4px rgba(240,185,85,0.18), 0 0 26px rgba(240,185,85,0.45); }
+  .hl.green { border-color: #6fd3a8; box-shadow: 0 0 0 4px rgba(111,211,168,0.18), 0 0 26px rgba(111,211,168,0.45); }
+  #chip { position: absolute; left: 36px; top: 30px; padding: 9px 16px; border-radius: 8px; font: 600 19px Consolas, monospace;
+    letter-spacing: 0.08em; background: rgba(4,12,26,0.86); border: 1px solid rgba(92,200,236,0.55); color: #9be2f8; }
+  #chip.amber { border-color: rgba(240,185,85,0.75); color: #f6d79b; }
+  #brand { position: absolute; right: 36px; bottom: 26px; font: 600 17px Consolas, monospace; letter-spacing: 0.18em;
+    color: rgba(190,215,240,0.75); background: rgba(4,12,26,0.6); padding: 6px 12px; border-radius: 6px; }
+  #fade { background: #040a17; pointer-events: none; }
+  /* slides */
+  .slide { position: absolute; inset: 0; padding: 110px 130px; box-sizing: border-box; }
+  .bg { position: absolute; inset: 0; background-size: 175% auto; background-repeat: no-repeat; filter: brightness(0.36) saturate(1.1); }
+  .kicker { font: 700 22px Consolas, monospace; letter-spacing: 0.3em; color: #5cc8ec; margin-bottom: 26px; }
+  .big { font-size: 64px; font-weight: 700; line-height: 1.12; letter-spacing: -0.01em; }
+  .mid { font-size: 40px; font-weight: 600; line-height: 1.25; color: #dbe7f6; }
+  .soft { color: #a9bdd6; }
+  .accent { color: #5cc8ec; }
+  .amber { color: #f0b955; }
+  .r { transition: none; }
+  .row { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; }
+  .stage-chip { font: 700 30px Consolas, monospace; letter-spacing: 0.12em; padding: 22px 26px; border-radius: 12px;
+    border: 2px solid rgba(92,200,236,0.55); background: rgba(10,30,58,0.85); color: #e7f6ff; }
+  .arrow { font-size: 34px; color: #5cc8ec; }
+  .stages .stage-chip { font-size: 25px; padding: 18px 18px; letter-spacing: 0.08em; }
+  .stages .arrow { font-size: 28px; }
+  .flowline { display: flex; align-items: center; gap: 18px; font-size: 38px; font-weight: 600; margin: 14px 0; }
+  .tag { font: 700 20px Consolas, monospace; letter-spacing: 0.14em; padding: 8px 14px; border-radius: 6px; min-width: 150px; text-align: center; }
+  .t-data { background: #12385f; color: #9be2f8; } .t-phys { background: #0f4a5a; color: #8ff0e8; }
+  .t-risk { background: #5a3a12; color: #ffd28f; } .t-ai { background: #2c2f6e; color: #c3c9ff; }
+  .t-human { background: #3f3a10; color: #ffe9a3; } .t-audit { background: #1f4a2e; color: #a9f0c4; }
+  .col { flex: 1; }
+  .card { border: 1px solid rgba(130,190,255,0.28); background: rgba(10,26,52,0.82); border-radius: 16px; padding: 34px 38px; }
+  .card h3 { margin: 0 0 22px; font: 700 24px Consolas, monospace; letter-spacing: 0.18em; color: #5cc8ec; }
+  .card.future h3 { color: #c3c9ff; }
+  ul.b { margin: 0; padding-left: 30px; } ul.b li { font-size: 31px; line-height: 1.32; margin: 10px 0; color: #dbe7f6; }
+  .eq { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .eq .p { font-size: 29px; font-weight: 600; padding: 16px 22px; border-radius: 12px; background: rgba(12,34,64,0.9); border: 1px solid rgba(92,200,236,0.45); }
+  .eq .op { font-size: 36px; color: #5cc8ec; font-weight: 700; }
+  .eq .res { background: rgba(92,200,236,0.18); border-color: #5cc8ec; color: #e7f6ff; }
+  .motto { font: 700 50px Consolas, monospace; letter-spacing: 0.16em; }
+  .center { text-align: center; }
+</style></head>
+<body>
+<div id="root">
+  <div class="layer" id="shotwrap"><img id="shotimg"></div>
+  <div class="layer" id="hls"></div>
+  <canvas class="layer" id="anim" width="1920" height="1080"></canvas>
+  <div class="layer" id="slides"></div>
+  <div id="chip"></div>
+  <div id="brand">ANTARIKSHA-RAKSHA · SEJAL KHIMANI</div>
+  <div class="layer" id="fade"></div>
+</div>
+<script>
+// ───────────── helpers ─────────────
+const ease = (x) => x <= 0 ? 0 : x >= 1 ? 1 : (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const reveal = (t, at, dur = 0.5) => ease((t - at) / dur);
+let CFG = null, IMGS = {}, current = -1;
+
+window.setup = async (cfg) => {
+  CFG = cfg;
+  await Promise.all(Object.entries(cfg.images).map(([k, src]) => new Promise((res, rej) => {
+    const im = new Image(); im.onload = () => { IMGS[k] = im; res(); }; im.onerror = rej; im.src = src;
+  })));
+  initThought();
+  return Object.keys(IMGS).length;
+};
+
+// ───────────── thought-experiment animation ─────────────
+const C = { x: 960, y: 590 };
+const A = { rx: 560, ry: 215, rot: -14 * Math.PI / 180 };
+const B = { rx: 470, ry: 300, rot: 31 * Math.PI / 180 };
+let STARS = [], XA = 0, XB = 0, X = { x: 0, y: 0 }, CROWD = [];
+function ept(e, th) {
+  const px = e.rx * Math.cos(th), py = e.ry * Math.sin(th);
+  return { x: C.x + px * Math.cos(e.rot) - py * Math.sin(e.rot), y: C.y + px * Math.sin(e.rot) + py * Math.cos(e.rot) };
+}
+function onB(p) { // implicit ellipse value for B
+  const dx = p.x - C.x, dy = p.y - C.y;
+  const x = dx * Math.cos(-B.rot) - dy * Math.sin(-B.rot), y = dx * Math.sin(-B.rot) + dy * Math.cos(-B.rot);
+  return (x * x) / (B.rx * B.rx) + (y * y) / (B.ry * B.ry) - 1;
+}
+function initThought() {
+  let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 260; i++) STARS.push({ x: rnd() * 1920, y: rnd() * 1080, r: rnd() * 1.4 + 0.3, a: rnd() * 0.6 + 0.2 });
+  // Crossing point: theta on A where A meets B (upper-right quadrant).
+  let best = 1e9;
+  for (let th = -1.2; th < 0.6; th += 0.0005) { const v = Math.abs(onB(ept(A, th))); if (v < best) { best = v; XA = th; } }
+  X = ept(A, XA);
+  best = 1e9;
+  for (let th = -Math.PI; th < Math.PI; th += 0.0005) { const p = ept(B, th); const d = Math.hypot(p.x - X.x, p.y - X.y); if (d < best) { best = d; XB = th; } }
+  for (let i = 0; i < 16; i++) CROWD.push({ rx: 300 + rnd() * 420, ry: 120 + rnd() * 260, rot: rnd() * Math.PI, ph: rnd() * 6.28, w: 0.25 + rnd() * 0.35 });
+}
+function drawEllipse(g, e, color, width, progress = 1, dash = null) {
+  g.save(); g.translate(C.x, C.y); g.rotate(e.rot); g.beginPath();
+  g.ellipse(0, 0, e.rx, e.ry, 0, 0, Math.PI * 2 * progress); g.strokeStyle = color; g.lineWidth = width;
+  if (dash) g.setLineDash(dash); g.stroke(); g.restore();
+}
+function sat(g, p, color, label, alpha = 1) {
+  g.save(); g.globalAlpha = alpha;
+  g.beginPath(); g.arc(p.x, p.y, 16, 0, 7); g.fillStyle = color + "33"; g.fill();
+  g.beginPath(); g.arc(p.x, p.y, 8, 0, 7); g.fillStyle = color; g.fill();
+  if (label) { g.font = "600 26px Segoe UI"; g.fillStyle = color; g.fillText(label, p.x + 20, p.y - 16); }
+  g.restore();
+}
+function txt(g, s, x, y, size, color, alpha = 1, weight = 700, align = "center", font = "Segoe UI") {
+  g.save(); g.globalAlpha = alpha; g.font = `${weight} ${size}px ${font}`; g.fillStyle = color; g.textAlign = align; g.fillText(s, x, y); g.restore();
+}
+function drawThought(t, sc) {
+  const cv = document.getElementById("anim"), g = cv.getContext("2d");
+  const q = sc.cues; // absolute starts of the 8 sentences
+  g.clearRect(0, 0, 1920, 1080);
+  const bg = g.createRadialGradient(960, 600, 50, 960, 600, 1100); bg.addColorStop(0, "#0a1a36"); bg.addColorStop(1, "#030814");
+  g.fillStyle = bg; g.fillRect(0, 0, 1920, 1080);
+  STARS.forEach((s) => { g.globalAlpha = s.a; g.fillStyle = "#cfe3ff"; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.fill(); });
+  g.globalAlpha = 1;
+  // Earth
+  const eg = g.createRadialGradient(C.x - 40, C.y - 50, 10, C.x, C.y, 120); eg.addColorStop(0, "#5aa8ff"); eg.addColorStop(0.6, "#1d4fa8"); eg.addColorStop(1, "#0b2456");
+  g.beginPath(); g.arc(C.x, C.y, 110, 0, 7); g.fillStyle = eg; g.fill();
+  g.beginPath(); g.arc(C.x, C.y, 116, 0, 7); g.strokeStyle = "rgba(120,200,255,0.35)"; g.lineWidth = 6; g.stroke();
+
+  // Title (sentence 0)
+  const titleA = reveal(t, q[0], 0.6) * (1 - reveal(t, q[1] - 0.2, 0.5));
+  txt(g, "A 30-SECOND THOUGHT EXPERIMENT", 960, 150, 46, "#9be2f8", titleA, 700, "center", "Consolas");
+
+  // Crowd (sentence 5 onward)
+  const crowdA = reveal(t, q[5], 1.2) * (1 - reveal(t, q[7] - 0.3, 0.6));
+  if (crowdA > 0) CROWD.forEach((e, i) => {
+    drawEllipse(g, e, `rgba(150,180,220,${0.22 * crowdA})`, 1.5);
+    sat(g, ept(e, e.ph + e.w * (t - q[5])), "#9fb6d8", null, crowdA * 0.9);
+  });
+
+  // Two orbits (from sentence 1)
+  const draw = clamp((t - q[1]) / 1.6, 0, 1);
+  const orbitsA = 1 - reveal(t, q[7] - 0.3, 0.6) * 0.85;
+  if (draw > 0) {
+    drawEllipse(g, A, `rgba(92,200,236,${0.9 * orbitsA})`, 3.5, ease(draw));
+    drawEllipse(g, B, `rgba(240,185,85,${0.9 * orbitsA})`, 3.5, ease(draw));
+  }
+  // Crossing marker
+  const xA = reveal(t, q[1] + 1.8, 0.5) * orbitsA;
+  if (xA > 0) {
+    const pulse = 1 + 0.25 * Math.sin((t - q[1]) * 4);
+    g.save(); g.globalAlpha = xA; g.beginPath(); g.arc(X.x, X.y, 22 * pulse, 0, 7); g.strokeStyle = "#ffffff"; g.lineWidth = 2.5; g.stroke(); g.restore();
+    txt(g, "paths cross", X.x + 36, X.y - 30, 26, "#ffffff", xA * (1 - reveal(t, q[4], 0.4)), 600, "left");
+  }
+  // Satellites: phase 1 (sentences 1–3): A reaches X well before B.
+  const wA = 0.42, wB = 0.36;
+  if (t >= q[1] + 1.6 && t < q[4]) {
+    const Ta = q[3] + 0.9, Tb = Ta + 4.2;
+    const pa = ept(A, XA + wA * (t - Ta)), pb = ept(B, XB + wB * (t - Tb));
+    const a = reveal(t, q[1] + 1.6, 0.5);
+    sat(g, pa, "#5cc8ec", "Satellite A", a); sat(g, pb, "#f0b955", "Satellite B", a);
+  }
+  // Phase 2 (sentence 4 onward): both arrive at X at the same time.
+  if (t >= q[4] && t < q[7]) {
+    const Tm = q[4] + 2.6;
+    const pa = ept(A, XA + wA * (t - Tm)), pb = ept(B, XB + wB * (t - Tm));
+    const a = reveal(t, q[4], 0.5) * (1 - reveal(t, q[5] + 1.5, 0.8) * 0.6);
+    sat(g, pa, "#5cc8ec", "A", a); sat(g, pb, "#f0b955", "B", a);
+    const f = Math.max(0, 1 - Math.abs(t - Tm) / 0.9);
+    if (f > 0) { g.save(); g.globalAlpha = f; g.beginPath(); g.arc(X.x, X.y, 30 + 50 * (1 - f), 0, 7); g.strokeStyle = "#ff6b6b"; g.lineWidth = 4; g.stroke(); g.restore(); }
+    txt(g, "same place  +  nearly the same time", X.x + 40, X.y + 60, 30, "#ffffff", reveal(t, Tm - 0.4, 0.4) * (1 - reveal(t, q[5], 0.5)), 600, "left");
+  }
+  // Question (sentence 2) and answer (sentence 3)
+  txt(g, "Do these two satellites necessarily collide?", 960, 150, 50, "#ffffff", reveal(t, q[2], 0.4) * (1 - reveal(t, q[3] - 0.1, 0.3)), 700);
+  txt(g, "Not necessarily.", 960, 130, 50, "#ffffff", reveal(t, q[3], 0.3) * (1 - reveal(t, q[4] - 0.1, 0.3)), 700);
+  txt(g, "They must also reach that point at approximately the same time.", 960, 190, 34, "#cfe3ff", reveal(t, q[3] + 1.0, 0.4) * (1 - reveal(t, q[4] - 0.1, 0.3)), 500);
+  txt(g, "→ the core idea of CONJUNCTION ASSESSMENT", 960, 150, 44, "#9be2f8", reveal(t, q[4], 0.4) * (1 - reveal(t, q[5] - 0.1, 0.3)), 700);
+  txt(g, "…now for a changing population of space objects", 960, 150, 44, "#ffffff", reveal(t, q[5], 0.4) * (1 - reveal(t, q[6] - 0.1, 0.3)), 600);
+  // Five questions (sentence 6)
+  const items = ["WHERE will they be?", "WHEN will they be closest?  → TCA", "HOW CLOSE will they get?  → miss distance", "HOW UNCERTAIN is that prediction?", "WHICH event deserves attention FIRST?"];
+  const span = (q[7] - q[6]) - 0.6;
+  const panelA = reveal(t, q[6], 0.4) * (1 - reveal(t, q[7] - 0.2, 0.4));
+  if (panelA > 0) {
+    g.save(); g.globalAlpha = panelA * 0.9; g.fillStyle = "rgba(4,12,26,0.88)"; g.strokeStyle = "rgba(92,200,236,0.5)"; g.lineWidth = 2;
+    g.beginPath(); g.roundRect(1150, 300, 690, 470, 18); g.fill(); g.stroke(); g.restore();
+    items.forEach((s, i) => txt(g, s, 1190, 380 + i * 86, 32, i === 4 ? "#f0b955" : "#e7f6ff", panelA * reveal(t, q[6] + 0.3 + (i * span) / 5, 0.35), 600, "left"));
+  }
+  // Closing of the thought experiment (sentence 7)
+  const fin = reveal(t, q[7], 0.6);
+  if (fin > 0) {
+    g.save(); g.globalAlpha = fin * 0.65; g.fillStyle = "#030814"; g.fillRect(0, 0, 1920, 1080); g.restore();
+    txt(g, "ANTARIKSHA-RAKSHA", 960, 520, 96, "#ffffff", fin, 800);
+    txt(g, "decision support for space domain awareness and conjunction assessment", 960, 600, 34, "#9be2f8", reveal(t, q[7] + 0.6, 0.6), 500);
+  }
+}
+
+// ───────────── shots ─────────────
+function cameraAt(t, keys) {
+  // keys: [{at, rect:[x,y,w], img}] — move over 1.1 s starting at each key time.
+  let i = 0; while (i + 1 < keys.length && t >= keys[i + 1].at) i++;
+  const k = keys[i];
+  let rect = k.rect;
+  if (i > 0 && keys[i - 1].img === k.img) {
+    const prev = keys[i - 1].rect, m = ease((t - k.at) / 1.1);
+    rect = [lerp(prev[0], k.rect[0], m), lerp(prev[1], k.rect[1], m), lerp(prev[2], k.rect[2], m)];
+  }
+  // gentle drift while holding (Ken Burns), max 2.5 %
+  const next = keys[i + 1] ? keys[i + 1].at : k.at + 8;
+  const hold = clamp((t - k.at - 1.1) / Math.max(1, next - k.at - 1.1), 0, 1);
+  const z = 1 - 0.025 * hold;
+  const cx = rect[0] + rect[2] / 2, cy = rect[1] + (rect[2] * 9 / 16) / 2, w = rect[2] * z;
+  return { img: k.img, x: cx - w / 2, y: cy - (w * 9 / 16) / 2, w, imgSwitchAt: k.at };
+}
+function drawShot(t, sc) {
+  const cam = cameraAt(t, sc.keys);
+  const im = document.getElementById("shotimg");
+  if (im.dataset.k !== cam.img) { im.src = IMGS[cam.img].src; im.dataset.k = cam.img; }
+  const s = 1920 / cam.w;
+  im.style.width = "1920px"; im.style.height = "1080px";
+  im.style.transform = `scale(${s}) translate(${-cam.x}px, ${-cam.y}px)`;
+  // fade-in on image switches inside a scene
+  const sw = clamp((t - cam.imgSwitchAt) / 0.35, 0, 1);
+  im.style.opacity = sc.keys[0].at === cam.imgSwitchAt ? 1 : sw;
+  const hl = document.getElementById("hls"); hl.innerHTML = "";
+  (sc.hl || []).forEach((h) => {
+    if (h.img && h.img !== cam.img) return;
+    const a = reveal(t, h.at, 0.35) * (1 - reveal(t, h.until - 0.3, 0.3));
+    if (a <= 0) return;
+    const d = document.createElement("div"); d.className = "hl " + (h.cls || "");
+    const pad = 6;
+    d.style.left = ((h.box[0] - cam.x) * s - pad) + "px"; d.style.top = ((h.box[1] - cam.y) * s - pad) + "px";
+    d.style.width = (h.box[2] * s + 2 * pad) + "px"; d.style.height = (h.box[3] * s + 2 * pad) + "px";
+    d.style.opacity = a; hl.appendChild(d);
+  });
+}
+
+// ───────────── slides ─────────────
+function drawSlide(t, sc, fresh) {
+  const host = document.getElementById("slides");
+  if (fresh) host.innerHTML = sc.html;
+  host.querySelectorAll("[data-at]").forEach((el) => {
+    const at = parseFloat(el.dataset.at), out = el.dataset.out ? parseFloat(el.dataset.out) : 1e9;
+    const a = reveal(t, at, 0.5) * (1 - reveal(t, out, 0.4));
+    el.style.opacity = a; el.style.transform = `translateY(${(1 - a) * 18}px)`;
+  });
+}
+
+// ───────────── frame ─────────────
+window.renderAt = (t) => {
+  const idx = CFG.scenes.findIndex((s) => t >= s.start && t < s.end);
+  const i = idx < 0 ? CFG.scenes.length - 1 : idx;
+  const sc = CFG.scenes[i];
+  const fresh = i !== current; current = i;
+  const shot = sc.type === "shot", slide = sc.type === "slide", anim = sc.type === "anim";
+  document.getElementById("shotwrap").style.display = shot ? "block" : "none";
+  document.getElementById("hls").style.display = shot ? "block" : "none";
+  document.getElementById("anim").style.display = anim ? "block" : "none";
+  document.getElementById("slides").style.display = slide ? "block" : "none";
+  if (shot) drawShot(t, sc); if (slide) drawSlide(t, sc, fresh); if (anim) drawThought(t, sc);
+  const chip = document.getElementById("chip");
+  chip.style.display = sc.chip ? "block" : "none"; chip.textContent = sc.chip || ""; chip.className = sc.chipClass || "";
+  document.getElementById("brand").style.display = (sc.brand === false || shot) ? "none" : "block";
+  const edge = Math.min(t - sc.start, sc.end - t);
+  const isFirst = i === 0, isLast = i === CFG.scenes.length - 1;
+  let f = clamp(1 - edge / 0.3, 0, 1) * 0.85;
+  if (isFirst && t - sc.start < 0.3) f = clamp(1 - (t - sc.start) / 0.6, 0, 1);
+  if (isLast && sc.end - t < 0.3) f = clamp(1 - (sc.end - t) / 0.8, 0, 1);
+  document.getElementById("fade").style.opacity = f;
+  return i;
+};
+</script>
+</body></html>

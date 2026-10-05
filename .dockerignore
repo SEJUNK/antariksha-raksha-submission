@@ -1,0 +1,14 @@
+# Build context for the backend image: only backend/ and data/working_set.json
+# are copied. Never send databases, caches, secrets or local environments.
+**
+!backend/
+!backend/**
+!data/working_set.json
+backend/venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+**/.env
+**/.env.*
+**/*.db
+**/*.db-*

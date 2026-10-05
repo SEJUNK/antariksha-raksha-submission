@@ -1,0 +1,242 @@
+{
+ "captured_utc": [
+  "2026-10-05T17:38:14.687Z",
+  "2026-10-05T17:41:04.278Z"
+ ],
+ "app": "https://antariksha-raksha.vercel.app/",
+ "live_status": {
+  "step": "live_status",
+  "mode": "LIVE DATA",
+  "source": "CelesTrak public GP/TLE data (celestrak.org)",
+  "last_refresh_at": "2026-10-05T17:39:07.320772+00:00",
+  "object_count": 103,
+  "objects_ingested": {
+   "satellite": 11,
+   "debris": 80,
+   "foreign_sat": 12
+  },
+  "window_h": 72,
+  "step_s": 60,
+  "candidate_pairs": 1012,
+  "collision_events": 0,
+  "proximity_events": 0,
+  "tle_age_days": {
+   "min": 0.41,
+   "max": 15.49,
+   "avg": 0.95
+  },
+  "scheduler": {
+   "mode": "internal",
+   "enabled": true,
+   "cadence": "0 */2 * * *",
+   "cadence_label": "every 2 hours",
+   "next_scheduled_at": "2026-10-05T18:00:00+00:00",
+   "last_successful_refresh_at": "2026-10-05T17:39:10.464403+00:00",
+   "last_attempt_at": "2026-10-05T17:39:10.464403+00:00",
+   "last_attempt_status": "success",
+   "last_attempt_trigger": "manual",
+   "last_attempt_reason": null,
+   "running": false
+  }
+ },
+ "demo_event": {
+  "id": 98,
+  "object_a_id": "44804",
+  "object_b_id": "25730",
+  "event_class": "collision_risk",
+  "tca_timestamp": "2026-10-05T23:59:59.986434+00:00",
+  "miss_distance_km": 0.020137211630447138,
+  "rel_velocity_km_s": 0.19910356203510407,
+  "pc_score": 0.007711307857205219,
+  "risk_tier": "Critical",
+  "priority_score": 15422.615714410438,
+  "created_at": "2026-10-05T17:39:35.984356+00:00",
+  "is_demo": 1,
+  "screening_run_id": 103,
+  "pc_samples": null,
+  "pc_sigma_km": 0.11320833480439815,
+  "pc_hard_body_radius_km": 0.02,
+  "tca_refinement": "Bounded minimisation of |r_rel| within +/-1 grid step (60 s) of the grid minimum; states from SGP4 (Skyfield, GCRS)",
+  "pc_method": "Simplified analytic encounter-plane indicator: the relative position at the refined TCA is projected onto the plane perpendicular to the relative velocity; with independent isotropic per-object sigma, the relative uncertainty in that plane is N(0, 2*sigma^2 I2); Pc = P(|projected relative position| < hard-body radius), evaluated deterministically"
+ },
+ "demo_event_provenance": {
+  "data": {
+   "source": "CelesTrak public GP/TLE data (celestrak.org)",
+   "object_a": {
+    "name": "CARTOSAT-3",
+    "norad_id": "44804",
+    "object_type": "satellite",
+    "criticality": "Tier2",
+    "source_format": "tle",
+    "tle_age_days": 0.45,
+    "demo_adjusted": false,
+    "derived_from_norad_id": null,
+    "demo_scenario": null
+   },
+   "object_b": {
+    "name": "FENGYUN 1C",
+    "norad_id": "25730",
+    "object_type": "debris",
+    "criticality": null,
+    "source_format": "tle",
+    "tle_age_days": 0.03,
+    "demo_adjusted": true,
+    "derived_from_norad_id": "44804",
+    "demo_scenario": "collision_demo"
+   },
+   "screening_run": {
+    "id": 103,
+    "started_at": "2026-10-05T17:39:33.090413+00:00",
+    "completed_at": "2026-10-05T17:39:36.880533+00:00",
+    "mode": "demo",
+    "data_source": "CelesTrak public GP/TLE data (celestrak.org)",
+    "ingest_run_id": 53,
+    "object_count": 103,
+    "objects_screened": 103,
+    "objects_skipped_stale": 0,
+    "counts_by_type_json": "{\"satellite\": 11, \"debris\": 80, \"foreign_sat\": 12}",
+    "tle_age_min_days": 0.03,
+    "tle_age_max_days": 15.49,
+    "tle_age_avg_days": 0.95,
+    "window_hours": 72,
+    "step_seconds": 60,
+    "screening_threshold_km": 10,
+    "proximity_watch_km": 25,
+    "candidate_pairs": 1012,
+    "collision_events": 1,
+    "proximity_events": 0,
+    "demo_scenario_json": "{\"scenario\": \"collision_demo\", \"asset_norad_id\": \"44804\", \"asset_name\": \"CARTOSAT-3\", \"adjusted_norad_id\": \"25730\", \"adjusted_name\": \"FENGYUN 1C\", \"separation_km\": 0.02, \"geometry\": \"crossing\", \"encounter_lead_hours\": 6.341, \"plane_offset_deg\": 1.5, \"sma_offset_km\": 15.0, \"encounter_epoch\": \"2026-10-06T00:00:00+00:00\", \"design_tca\": \"2026-10-05T23:59:59.986432+00:00\", \"design_miss_distance_km\": 0.02014, \"design_rel_velocity_km_s\": 0.1991, \"mean_anomaly_offset_deg\": null}",
+    "observations_recorded": 1,
+    "correlation_baseline_run_id": null,
+    "trigger": null,
+    "source": "CelesTrak public GP/TLE data (celestrak.org)",
+    "ingest_completed_at": "2026-10-05T17:39:07.320772+00:00",
+    "ingest_used_cache": false,
+    "ingest_source_format": "tle",
+    "counts_by_type": {
+     "satellite": 11,
+     "debris": 80,
+     "foreign_sat": 12
+    },
+    "tle_age_days": {
+     "min": 0.03,
+     "max": 15.49,
+     "avg": 0.95
+    },
+    "demo_scenario": {
+     "scenario": "collision_demo",
+     "asset_norad_id": "44804",
+     "asset_name": "CARTOSAT-3",
+     "adjusted_norad_id": "25730",
+     "adjusted_name": "FENGYUN 1C",
+     "separation_km": 0.02,
+     "geometry": "crossing",
+     "encounter_lead_hours": 6.341,
+     "plane_offset_deg": 1.5,
+     "sma_offset_km": 15,
+     "encounter_epoch": "2026-10-06T00:00:00+00:00",
+     "design_tca": "2026-10-05T23:59:59.986432+00:00",
+     "design_miss_distance_km": 0.02014,
+     "design_rel_velocity_km_s": 0.1991,
+     "mean_anomaly_offset_deg": null
+    }
+   }
+  },
+  "propagation": {
+   "engine": "SGP4 (via Skyfield)",
+   "horizon_hours": 72,
+   "step_seconds": 60,
+   "horizon_source": "screening_run",
+   "screening_run_id": 103
+  },
+  "analysis": {
+   "event_class": "collision_risk",
+   "screening_threshold_km": 10,
+   "tca": "2026-10-05T23:59:59.986434+00:00",
+   "miss_distance_km": 0.020137211630447138,
+   "relative_velocity_km_s": 0.19910356203510407,
+   "tca_refinement": "Bounded minimisation of |r_rel| within +/-1 grid step (60 s) of the grid minimum; states from SGP4 (Skyfield, GCRS)",
+   "state_evaluated_at": "TCA (refined)"
+  },
+  "probability": {
+   "method": "Simplified analytic encounter-plane indicator: the relative position at the refined TCA is projected onto the plane perpendicular to the relative velocity; with independent isotropic per-object sigma, the relative uncertainty in that plane is N(0, 2*sigma^2 I2); Pc = P(|projected relative position| < hard-body radius), evaluated deterministically",
+   "label": "Simplified analytic collision-probability indicator -- NOT an operational covariance-based Pc",
+   "deterministic": true,
+   "samples": null,
+   "pc_resolution": null,
+   "sigma_km": 0.11320833480439815,
+   "relative_sigma_km": 0.16010076245405397,
+   "hard_body_radius_km": 0.02,
+   "state_evaluated_at": "TCA (refined)",
+   "simplified": true,
+   "validation_reference": "Monte Carlo sampling is kept only as a test reference for the analytic formula",
+   "uncertainty_model": "Simplified prototype estimate: isotropic Gaussian position sigma per object, growing linearly with time-to-TCA. NOT full covariance propagation.",
+   "limitations": [
+    "Isotropic Gaussian position uncertainty with linear growth -- not propagated covariance",
+    "Short-encounter assumption (straight-line relative motion through the encounter plane) -- weak for slow or co-orbital encounters",
+    "Uses assumed sigma, not orbit-determination covariance, so absolute Pc values are indicative only"
+   ]
+  },
+  "risk": {
+   "tier": "Critical",
+   "criticality": "Tier2",
+   "criticality_multiplier": 2,
+   "priority_score": 15422.615714410438,
+   "event_class": "collision_risk",
+   "pc_score": 0.007711307857205219,
+   "priority_basis": "pc_x_criticality",
+   "criticality_effective": "Tier2",
+   "criticality_multiplier_effective": 2,
+   "dwell_minutes": null,
+   "tier_thresholds": {
+    "critical": 0.0001,
+    "high": 1e-05,
+    "medium": 1e-06
+   }
+  },
+  "ai": {
+   "used": false,
+   "model": null,
+   "generated_by": "fallback_template",
+   "generated_by_label": "Deterministic template",
+   "purpose": "Brief generation / operator-readable explanation only -- decision-support, not decision-making",
+   "involved_in_numerical_calculation": false,
+   "fallback": "Deterministic template brief (no LLM call) when the local Ollama model is unreachable or times out, or when the regenerated LLM draft still fails the deterministic tone guard",
+   "reviewer_notes": null,
+   "review_status": "not_applicable",
+   "review_description": "Deterministic fact check (numbers, risk tier, recommendation and intent language) plus a second-pass consistency review by the same local LLM — not independent validation; LLM flags not confirmed by the fact check are recorded as advisory notes.",
+   "feedback_mechanism": "In-context feedback: up to 3 recent operator rejection reasons are added to the prompt; no model weights are modified",
+   "ai_does": [
+    "Drafts the operator-readable brief from values already computed by the analysis pipeline",
+    "Runs a second-pass consistency check of the draft against the input data"
+   ],
+   "ai_does_not": [
+    "Compute TCA, miss distance, relative velocity, Pc, risk tier or priority",
+    "Plan or execute maneuvers (delta-v comes from a deterministic estimate)",
+    "Make decisions -- every brief requires operator approval or dismissal",
+    "Learn by updating model weights"
+   ]
+  },
+  "provenance": {
+   "is_demo": true,
+   "mode": "DEMO"
+  },
+  "human_decision": {
+   "status": "pending",
+   "history": []
+  }
+ },
+ "decision": {
+  "decision": "approved",
+  "decided_at": "2026-10-05T17:40:24.554345+00:00",
+  "actor_role": "ADMINISTRATOR",
+  "generated_by": "fallback_template",
+  "is_demo": 1
+ },
+ "decision_stats": {
+  "total": 14,
+  "approved": 7,
+  "dismissed": 7
+ },
+ "final_mode": "CACHED DATA"
+}

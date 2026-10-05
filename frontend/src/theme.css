@@ -1,0 +1,221 @@
+:root {
+  --bg-space: #0B1020;
+  --bg-panel: rgba(19, 41, 75, 0.72);
+  --bg-panel-solid: #13294B;
+  --border-line: rgba(0, 194, 255, 0.18);
+  --accent: #00C2FF;
+  --accent-dim: rgba(0, 194, 255, 0.35);
+  --warn: #F2994A;
+  --critical: #EB5757;
+  --safe: #27AE60;
+  --medium: #F2C94C;
+  --text-primary: #E8EEF7;
+  --text-secondary: #8FA3BF;
+  --tricolor-saffron: #FF9933;
+  --tricolor-green: #138808;
+  /* Indic-script fallbacks: locally installed system fonts only (no font CDN).
+     Latin text keeps Inter / IBM Plex Mono; Indic glyphs fall through to the
+     first installed font that covers the script. */
+  --font-indic: 'Nirmala UI', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu',
+    'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Kannada', 'Noto Sans Malayalam',
+    'Noto Sans Gurmukhi', 'Noto Sans Oriya', 'Noto Sans Oriya UI', 'Mangal', 'Latha', 'Gautami',
+    'Vrinda', 'Shruti', 'Tunga', 'Kartika', 'Raavi', 'Kalinga', 'Lohit Devanagari',
+    'Kohinoor Devanagari', 'Tamil Sangam MN', 'Telugu Sangam MN', 'Bangla Sangam MN';
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-space);
+  color: var(--text-primary);
+  font-family: 'Inter', var(--font-indic), sans-serif;
+  overflow: hidden;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', var(--font-indic), monospace;
+}
+
+.eyebrow {
+  font-family: 'Inter', var(--font-indic), sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+}
+
+/* thin dark scrollbars, no default browser chrome (Section 9.9) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-line);
+  border-radius: 4px;
+}
+
+button, select, textarea {
+  font-family: 'Inter', var(--font-indic), sans-serif;
+}
+
+/* Indic scripts have tall matras/conjuncts: avoid clipping in tight rows. */
+html:not(:lang(en)) body {
+  line-height: 1.35;
+}
+
+/* Header: keep it on one 48px row at every width and in every language.
+   The right-hand control group NEVER shrinks (language selector and text-size
+   buttons must stay reachable); the subtitle / local-script name truncate
+   first, then low-priority items hide level by level. */
+.hdr-nowrap { white-space: nowrap; }
+.hdr-left { display: contents; }
+.hdr-dot { flex: 0 0 auto; }
+.hdr-brand { flex: 0 0 auto; margin-left: 10px; }
+.hdr-brand-local { flex: 0 1 auto; min-width: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; }
+.hdr-subtitle { flex: 1 1 auto; min-width: 0; margin: 0 16px 0 10px; overflow: hidden; text-overflow: ellipsis; }
+.hdr-right { flex: 0 0 auto; margin-left: auto; padding-left: 16px; }
+.hdr-right > * { flex-shrink: 0; }
+.hdr-sys { max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+.hdr-evchip-short, .hdr-sys-dot, .hdr-analytics-icon, .hdr-btn-icon { display: none; }
+/* data-compact = base level from the header width in ZOOMED units (viewport
+   width / UI text scale) plus adaptive steps while the content still
+   overflows (uiScale.nextHeaderCompact, measured with a ResizeObserver). */
+.hdr-bar:not([data-compact="0"]) .hdr-right { gap: 10px !important; }
+.hdr-bar[data-compact="1"] .hdr-sys { max-width: 200px; }
+.hdr-bar[data-compact="2"] .hdr-sys,
+.hdr-bar[data-compact="3"] .hdr-sys { max-width: 120px; }
+.hdr-bar[data-compact="2"] .hdr-lang-status,
+.hdr-bar[data-compact="2"] .hdr-subtitle,
+.hdr-bar[data-compact="3"] .hdr-lang-status,
+.hdr-bar[data-compact="3"] .hdr-subtitle,
+.hdr-bar[data-compact="4"] .hdr-lang-status,
+.hdr-bar[data-compact="4"] .hdr-subtitle,
+.hdr-bar[data-compact="5"] .hdr-lang-status,
+.hdr-bar[data-compact="5"] .hdr-subtitle,
+.hdr-bar[data-compact="6"] .hdr-lang-status,
+.hdr-bar[data-compact="7"] .hdr-lang-status,
+.hdr-bar[data-compact="6"] .hdr-subtitle,
+.hdr-bar[data-compact="7"] .hdr-subtitle { display: none; }
+/* 3+: no clock; event chip switches to the short "● 1 · CRITICAL" form. */
+.hdr-bar[data-compact="3"] .hdr-clock,
+.hdr-bar[data-compact="4"] .hdr-clock,
+.hdr-bar[data-compact="5"] .hdr-clock,
+.hdr-bar[data-compact="6"] .hdr-clock,
+.hdr-bar[data-compact="7"] .hdr-clock,
+.hdr-bar[data-compact="3"] .hdr-evchip-full,
+.hdr-bar[data-compact="4"] .hdr-evchip-full,
+.hdr-bar[data-compact="5"] .hdr-evchip-full,
+.hdr-bar[data-compact="6"] .hdr-evchip-full,
+.hdr-bar[data-compact="7"] .hdr-evchip-full { display: none; }
+.hdr-bar[data-compact="3"] .hdr-evchip-short,
+.hdr-bar[data-compact="4"] .hdr-evchip-short,
+.hdr-bar[data-compact="5"] .hdr-evchip-short,
+.hdr-bar[data-compact="6"] .hdr-evchip-short,
+.hdr-bar[data-compact="7"] .hdr-evchip-short { display: inline; }
+/* 4+: system status becomes a coloured dot (text in its tooltip); the
+   local-script brand name hides. */
+.hdr-bar[data-compact="4"] .hdr-sys-text,
+.hdr-bar[data-compact="5"] .hdr-sys-text,
+.hdr-bar[data-compact="6"] .hdr-sys-text,
+.hdr-bar[data-compact="7"] .hdr-sys-text,
+.hdr-bar[data-compact="4"] .hdr-brand-local,
+.hdr-bar[data-compact="5"] .hdr-brand-local,
+.hdr-bar[data-compact="6"] .hdr-brand-local,
+.hdr-bar[data-compact="7"] .hdr-brand-local { display: none; }
+.hdr-bar[data-compact="4"] .hdr-sys-dot,
+.hdr-bar[data-compact="5"] .hdr-sys-dot,
+.hdr-bar[data-compact="6"] .hdr-sys-dot,
+.hdr-bar[data-compact="7"] .hdr-sys-dot { display: inline; }
+/* 5+: icon-only analytics button, narrower language list. */
+.hdr-bar[data-compact="5"] .hdr-analytics-label,
+.hdr-bar[data-compact="6"] .hdr-analytics-label,
+.hdr-bar[data-compact="7"] .hdr-analytics-label { display: none; }
+.hdr-bar[data-compact="5"] .hdr-analytics-icon,
+.hdr-bar[data-compact="6"] .hdr-analytics-icon,
+.hdr-bar[data-compact="7"] .hdr-analytics-icon { display: inline; }
+.hdr-bar[data-compact="5"] .hdr-lang select,
+.hdr-bar[data-compact="6"] .hdr-lang select,
+.hdr-bar[data-compact="7"] .hdr-lang select { max-width: 84px !important; }
+/* 6: product name text hides (the pulsing dot keeps it as a tooltip). */
+.hdr-bar[data-compact="6"] .hdr-brand,
+.hdr-bar[data-compact="7"] .hdr-brand { display: none; }
+/* Signed-in user: 3+ the name hides (role chip keeps it in its tooltip);
+   5+ Users / Log out become icon buttons (labels stay as aria-label/title). */
+.hdr-bar[data-compact="3"] .hdr-user-name,
+.hdr-bar[data-compact="4"] .hdr-user-name,
+.hdr-bar[data-compact="5"] .hdr-user-name,
+.hdr-bar[data-compact="6"] .hdr-user-name,
+.hdr-bar[data-compact="7"] .hdr-user-name { display: none; }
+.hdr-bar[data-compact="5"] .hdr-btn-label,
+.hdr-bar[data-compact="6"] .hdr-btn-label,
+.hdr-bar[data-compact="7"] .hdr-btn-label { display: none; }
+.hdr-bar[data-compact="5"] .hdr-btn-icon,
+.hdr-bar[data-compact="6"] .hdr-btn-icon,
+.hdr-bar[data-compact="7"] .hdr-btn-icon { display: inline; }
+/* 7: the text-size reset (percentage) button hides; A− / A+ stay. */
+.hdr-bar[data-compact="7"] .hdr-scale-reset { display: none; }
+.hdr-brand-local { color: var(--text-secondary); font-weight: 600; }
+
+/* "What changed?" card: sticky cue when more content is below the fold. */
+.delta-more {
+  position: sticky; bottom: -10px; margin: 4px -14px -10px; padding: 6px 14px 3px;
+  text-align: center; font-size: 10px; color: var(--accent); cursor: pointer;
+  background: linear-gradient(to bottom, transparent, var(--bg-panel-solid) 55%);
+}
+
+/* Text-size control (A− 100% A+) */
+.ui-scale-btn {
+  background: transparent; border: 1px solid var(--border-line); color: var(--text-secondary);
+  border-radius: 6px; padding: 2px 6px; font-size: 11px; font-weight: 600; cursor: pointer;
+  line-height: 1.2; white-space: nowrap;
+}
+.ui-scale-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* Visible hover feedback for every enabled button (not colour-only: the
+   label text always carries the meaning). */
+button:not(:disabled):hover { filter: brightness(1.25); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Cesium credits: we use no Cesium ion services (no token anywhere), so the
+   ion logo is optional branding -- hide it. The "Data attribution" link stays
+   (OSM/CARTO tile attribution is required by their usage policies), dimmed. */
+.cesium-credit-logoContainer {
+  display: none !important;
+}
+.cesium-viewer-bottom {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes headerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "_comment": "NORAD names verified live against CelesTrak gp.php NAME= queries on 2026-07-19. Group A = Indian protected assets (name_query resolves to exactly one CelesTrak object at build time). Group B = debris via CelesTrak GROUP query, subsampled by ingest.py per max_count. Group C = foreign active satellites selected by orbital-mechanical similarity to Group A regimes (LEO sun-synchronous EO, or GEO comms), not by nationality-based accusation (see blueprint Section 7).",
+  "group_a": [
+    {"name_query": "GSAT-7A", "criticality": "Tier1", "note": "Military-band strategic comms"},
+    {"name_query": "GSAT-7", "exact_match": "GSAT-7", "criticality": "Tier1", "note": "Military-band strategic comms"},
+    {"name_query": "GSAT-6A", "criticality": "Tier1", "note": "Strategic comms"},
+    {"name_query": "IRNSS-1I", "criticality": "Tier1", "note": "NavIC constellation member"},
+    {"name_query": "CARTOSAT-3", "criticality": "Tier2", "note": "Earth observation/recon"},
+    {"name_query": "RISAT-2BR1", "criticality": "Tier2", "note": "Earth observation/recon"},
+    {"name_query": "RISAT-2BR2", "criticality": "Tier2", "note": "Earth observation/recon"},
+    {"name_query": "EOS-4", "criticality": "Tier2", "note": "Earth observation/recon"},
+    {"name_query": "OCEANSAT-2", "criticality": "Tier3", "note": "Science/civil"},
+    {"name_query": "RESOURCESAT-2A", "criticality": "Tier3", "note": "Science/civil"},
+    {"name_query": "ASTROSAT", "criticality": "Tier3", "note": "Science/civil"}
+  ],
+  "group_b_debris_groups": [
+    {"celestrak_group": "fengyun-1c-debris", "max_count": 50, "note": "2007 Chinese ASAT test fragments, required by blueprint"},
+    {"celestrak_group": "cosmos-2251-debris", "max_count": 20, "note": "2009 Iridium-33/Cosmos-2251 collision debris"},
+    {"celestrak_group": "iridium-33-debris", "max_count": 10, "note": "2009 Iridium-33/Cosmos-2251 collision debris"}
+  ],
+  "group_c": [
+    {"name_query": "SENTINEL-2A", "note": "LEO sun-synchronous EO, similar regime to Cartosat/RISAT"},
+    {"name_query": "SENTINEL-2B", "note": "LEO sun-synchronous EO"},
+    {"name_query": "LANDSAT 8", "note": "LEO sun-synchronous EO"},
+    {"name_query": "LANDSAT 9", "note": "LEO sun-synchronous EO"},
+    {"name_query": "TERRA", "exact_match": "TERRA", "note": "LEO sun-synchronous EO"},
+    {"name_query": "SPOT 6", "note": "LEO sun-synchronous EO"},
+    {"name_query": "SPOT 7", "note": "LEO sun-synchronous EO"},
+    {"name_query": "GAOFEN-1", "exact_match": "GAOFEN-1", "note": "LEO sun-synchronous EO"},
+    {"name_query": "CHINASAT 9B", "note": "GEO comms, similar regime to GSAT"},
+    {"name_query": "MEASAT-3", "exact_match": "MEASAT-3", "note": "GEO comms"},
+    {"name_query": "PALAPA D", "note": "GEO comms"},
+    {"name_query": "APSTAR-6", "exact_match": "APSTAR-6", "note": "GEO comms"}
+  ]
+}

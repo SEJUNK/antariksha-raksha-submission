@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+skyfield>=1.54
+sgp4>=2.22
+numpy>=2.5
+scipy>=1.16.1
+requests
+pytest

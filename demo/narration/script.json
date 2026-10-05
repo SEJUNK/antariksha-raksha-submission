@@ -1,0 +1,122 @@
+{
+  "title": "ANTARIKSHA-RAKSHA — Jury Demonstration",
+  "presenter": "Sejal Khimani",
+  "voice": "en-IN-NeerjaNeural",
+  "rate": "+18%",
+  "sections": [
+    {
+      "id": "s01_thought",
+      "title": "Thought experiment",
+      "sentences": [
+        "Before I show you my solution, let me start with a thirty-second thought experiment.",
+        "Imagine these are two satellites. Their predicted orbital paths cross.",
+        "Do these two satellites necessarily collide?",
+        "Not necessarily. They also have to reach that location at approximately the same time.",
+        "That is one of the fundamental ideas behind conjunction assessment.",
+        "Now imagine doing this repeatedly, for a changing population of space objects.",
+        "We need to know where they will be, when they will be closest, how close they will get, how uncertain that prediction is, and which event deserves attention first.",
+        "That is the problem ANTARIKSHA-RAKSHA is designed to support."
+      ]
+    },
+    {
+      "id": "s02_problem",
+      "title": "The problem",
+      "sentences": [
+        "Space is becoming increasingly crowded.",
+        "The challenge is not simply tracking objects. It is turning changing orbital information into a prioritised, explainable and auditable decision-support workflow.",
+        "Think of space as a three-dimensional highway: vehicles travelling at several kilometres per second, with no visible lanes."
+      ]
+    },
+    {
+      "id": "s03_solution",
+      "title": "Seven-stage workflow",
+      "sentences": [
+        "ANTARIKSHA-RAKSHA follows seven stages: see, predict, detect, understand, prioritise, explain, and decide.",
+        "Data comes in. Physics processes it. Risk prioritises it. AI explains it. A human decides. And the audit trail records what happened."
+      ]
+    },
+    {
+      "id": "s04_live",
+      "title": "Live data",
+      "sentences": [
+        "This is the deployed prototype. It uses public orbital data from CelesTrak, and propagates the objects forward using SGP4.",
+        "It screens one hundred and three objects over a seventy-two-hour horizon at a sixty-second step, one thousand and twelve candidate pairs, refreshed automatically every two hours.",
+        "The displayed tracks are SGP4-propagated predictions based on the latest available orbital data. This is not continuous sensor-level live telemetry."
+      ]
+    },
+    {
+      "id": "s05_conjunction",
+      "title": "Conjunction assessment",
+      "sentences": [
+        "For demonstration purposes, the prototype can create controlled geometry derived from ingested orbital data.",
+        "This is a controlled simulation for demonstrating the decision workflow. It is not an operational warning.",
+        "Here, screening flags CARTOSAT-3 and a Fengyun-1C debris fragment.",
+        "TCA means Time of Closest Approach: the predicted moment when the separation between the two objects is smallest.",
+        "The miss distance at TCA is twenty metres, at a relative velocity of zero point two kilometres per second."
+      ]
+    },
+    {
+      "id": "s06_pc",
+      "title": "Collision-probability indicator",
+      "sentences": [
+        "The prototype calculates a deterministic collision-probability indicator using an analytic encounter-plane model.",
+        "This is a simplified analytic collision-probability indicator. It is NOT an operational covariance-based collision probability.",
+        "It uses simplified isotropic uncertainty, not authoritative operational covariance, and a twenty-metre hard-body radius.",
+        "Monte Carlo is not the production calculation; it is kept only as a test reference."
+      ]
+    },
+    {
+      "id": "s07_priority",
+      "title": "Risk prioritisation",
+      "sentences": [
+        "The event is placed in the Critical tier, and asset criticality raises its priority, for ordering only.",
+        "The purpose is not simply to produce a number. It is to help answer: which event deserves attention first?"
+      ]
+    },
+    {
+      "id": "s08_ai",
+      "title": "AI explanation boundary",
+      "sentences": [
+        "AI does not calculate the orbit. AI does not calculate TCA, miss distance or collision probability. AI does not command a spacecraft.",
+        "AI receives the already-computed backend evidence, and helps turn it into a concise, analyst-oriented explanation.",
+        "On this hosted deployment the AI layer is unavailable, so a labelled deterministic template is shown, and the physics and risk assessment remain available."
+      ]
+    },
+    {
+      "id": "s09_decision",
+      "title": "Human decision and audit",
+      "sentences": [
+        "The operator can approve the assessment, or dismiss it with a reason.",
+        "The final decision remains with the human operator, recorded in the audit trail with the account and role that made it.",
+        "No command is sent to any spacecraft."
+      ]
+    },
+    {
+      "id": "s10_india",
+      "title": "India and innovation",
+      "sentences": [
+        "For India, the opportunity is not to replace established orbital tracking or space-situational-awareness capabilities.",
+        "It is to build complementary, modular and sovereign software layers that help transform orbital evidence into explainable, prioritised and auditable decision support.",
+        "The innovation is in integrating deterministic orbital evidence, transparent risk reasoning, local AI explanation, human governance and auditability into one demonstrable workflow."
+      ]
+    },
+    {
+      "id": "s11_limits",
+      "title": "Limitations and future evolution",
+      "sentences": [
+        "These are transparent engineering boundaries: public TLE data; simplified isotropic uncertainty instead of operational covariance; a fixed hard-body radius, weaker for slow co-orbital encounters; no operational validation; and controlled demo scenarios. It is decision support, not spacecraft control.",
+        "Next steps: covariance and CDM integration, richer catalogue feeds, higher-fidelity uncertainty propagation, and operational validation."
+      ]
+    },
+    {
+      "id": "s12_close",
+      "title": "Closing",
+      "sentences": [
+        "Space safety is not only about tracking what is in orbit.",
+        "It is about understanding what may happen next — and helping the right human make the right decision at the right time.",
+        "ANTARIKSHA-RAKSHA.",
+        "Physics first. AI second. Human decision last."
+      ]
+    }
+  ]
+}

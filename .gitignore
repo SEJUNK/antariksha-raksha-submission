@@ -1,0 +1,46 @@
+# --- Python ---
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+backend/venv/
+.coverage
+htmlcov/
+coverage/
+
+# --- Node / frontend build ---
+node_modules/
+dist/
+frontend/dist/
+build/
+.vercel/
+
+# --- Local secrets (placeholder-only templates are committed) ---
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+
+# --- Local databases and runtime caches ---
+*.db
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.db-journal
+data/tle_cache/
+
+# --- Logs and temporary files ---
+logs/
+*.log
+tmp/
+*.tmp
+*.partial
+demo/video/_render/
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

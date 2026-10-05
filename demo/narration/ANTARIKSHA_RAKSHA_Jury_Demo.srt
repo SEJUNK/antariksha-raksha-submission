@@ -1,0 +1,168 @@
+1
+00:00:01,200 --> 00:00:05,603
+Before I show you my solution, let me start with a thirty-second thought experiment.
+
+2
+00:00:05,903 --> 00:00:10,539
+Imagine these are two satellites. Their predicted orbital paths cross.
+
+3
+00:00:10,839 --> 00:00:13,150
+Do these two satellites necessarily collide?
+
+4
+00:00:13,450 --> 00:00:18,946
+Not necessarily. They also have to reach that location at approximately the same time.
+
+5
+00:00:19,246 --> 00:00:22,660
+That is one of the fundamental ideas behind conjunction assessment.
+
+6
+00:00:22,960 --> 00:00:27,527
+Now imagine doing this repeatedly, for a changing population of space objects.
+
+7
+00:00:27,827 --> 00:00:36,113
+We need to know where they will be, when they will be closest, how close they will get, how uncertain that prediction is, and which event deserves attention first.
+
+8
+00:00:36,413 --> 00:00:39,317
+That is the problem ANTARIKSHA-RAKSHA is designed to support.
+
+9
+00:00:40,067 --> 00:00:42,188
+Space is becoming increasingly crowded.
+
+10
+00:00:42,488 --> 00:00:51,931
+The challenge is not simply tracking objects. It is turning changing orbital information into a prioritised, explainable and auditable decision-support workflow.
+
+11
+00:00:52,231 --> 00:00:58,801
+Think of space as a three-dimensional highway: vehicles travelling at several kilometres per second, with no visible lanes.
+
+12
+00:00:59,551 --> 00:01:06,538
+ANTARIKSHA-RAKSHA follows seven stages: see, predict, detect, understand, prioritise, explain, and decide.
+
+13
+00:01:06,838 --> 00:01:18,595
+Data comes in. Physics processes it. Risk prioritises it. AI explains it. A human decides. And the audit trail records what happened.
+
+14
+00:01:19,345 --> 00:01:27,681
+This is the deployed prototype. It uses public orbital data from CelesTrak, and propagates the objects forward using SGP4.
+
+15
+00:01:27,981 --> 00:01:37,182
+It screens one hundred and three objects over a seventy-two-hour horizon at a sixty-second step, one thousand and twelve candidate pairs, refreshed automatically every two hours.
+
+16
+00:01:37,482 --> 00:01:46,455
+The displayed tracks are SGP4-propagated predictions based on the latest available orbital data. This is not continuous sensor-level live telemetry.
+
+17
+00:01:47,205 --> 00:01:53,276
+For demonstration purposes, the prototype can create controlled geometry derived from ingested orbital data.
+
+18
+00:01:53,576 --> 00:01:59,615
+This is a controlled simulation for demonstrating the decision workflow. It is not an operational warning.
+
+19
+00:01:59,915 --> 00:02:04,312
+Here, screening flags CARTOSAT-3 and a Fengyun-1C debris fragment.
+
+20
+00:02:04,612 --> 00:02:10,883
+TCA means Time of Closest Approach: the predicted moment when the separation between the two objects is smallest.
+
+21
+00:02:11,183 --> 00:02:17,084
+The miss distance at TCA is twenty metres, at a relative velocity of zero point two kilometres per second.
+
+22
+00:02:17,834 --> 00:02:23,844
+The prototype calculates a deterministic collision-probability indicator using an analytic encounter-plane model.
+
+23
+00:02:24,144 --> 00:02:31,570
+This is a simplified analytic collision-probability indicator. It is NOT an operational covariance-based collision probability.
+
+24
+00:02:31,870 --> 00:02:38,943
+It uses simplified isotropic uncertainty, not authoritative operational covariance, and a twenty-metre hard-body radius.
+
+25
+00:02:39,243 --> 00:02:44,129
+Monte Carlo is not the production calculation; it is kept only as a test reference.
+
+26
+00:02:44,879 --> 00:02:50,507
+The event is placed in the Critical tier, and asset criticality raises its priority, for ordering only.
+
+27
+00:02:50,807 --> 00:02:57,377
+The purpose is not simply to produce a number. It is to help answer: which event deserves attention first?
+
+28
+00:02:58,127 --> 00:03:08,026
+AI does not calculate the orbit. AI does not calculate TCA, miss distance or collision probability. AI does not command a spacecraft.
+
+29
+00:03:08,326 --> 00:03:14,723
+AI receives the already-computed backend evidence, and helps turn it into a concise, analyst-oriented explanation.
+
+30
+00:03:15,023 --> 00:03:23,164
+On this hosted deployment the AI layer is unavailable, so a labelled deterministic template is shown, and the physics and risk assessment remain available.
+
+31
+00:03:23,914 --> 00:03:27,490
+The operator can approve the assessment, or dismiss it with a reason.
+
+32
+00:03:27,790 --> 00:03:33,799
+The final decision remains with the human operator, recorded in the audit trail with the account and role that made it.
+
+33
+00:03:34,099 --> 00:03:36,301
+No command is sent to any spacecraft.
+
+34
+00:03:37,051 --> 00:03:43,323
+For India, the opportunity is not to replace established orbital tracking or space-situational-awareness capabilities.
+
+35
+00:03:43,623 --> 00:03:52,536
+It is to build complementary, modular and sovereign software layers that help transform orbital evidence into explainable, prioritised and auditable decision support.
+
+36
+00:03:52,836 --> 00:04:02,710
+The innovation is in integrating deterministic orbital evidence, transparent risk reasoning, local AI explanation, human governance and auditability into one demonstrable workflow.
+
+37
+00:04:03,460 --> 00:04:22,101
+These are transparent engineering boundaries: public TLE data; simplified isotropic uncertainty instead of operational covariance; a fixed hard-body radius, weaker for slow co-orbital encounters; no operational validation; and controlled demo scenarios. It is decision support, not spacecraft control.
+
+38
+00:04:22,401 --> 00:04:30,279
+Next steps: covariance and CDM integration, richer catalogue feeds, higher-fidelity uncertainty propagation, and operational validation.
+
+39
+00:04:31,029 --> 00:04:34,247
+Space safety is not only about tracking what is in orbit.
+
+40
+00:04:34,547 --> 00:04:40,135
+It is about understanding what may happen next — and helping the right human make the right decision at the right time.
+
+41
+00:04:40,435 --> 00:04:41,330
+ANTARIKSHA-RAKSHA.
+
+42
+00:04:41,630 --> 00:04:46,285
+Physics first. AI second. Human decision last.
+
