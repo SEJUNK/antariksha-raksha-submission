@@ -154,7 +154,7 @@ A linear pipeline on one backend process, not a distributed system.
 | AI (optional) | Ollama running `llama3.2:3b` locally (open-weight model under Meta's Llama licence) |
 | Report export | `docx` (Word incident report, built in the browser) and browser print to PDF |
 | Localisation | UI in 11 languages; optional local IndicTrans2 translation of briefs (off by default, no external API) |
-| Notifications (optional) | Telegram bot alerts, off unless explicitly enabled |
+| Notifications | Telegram operator alerts, notification only. Optional feature (off unless explicitly enabled); **enabled in the current hosted jury environment** |
 | Hosting | Vercel (static frontend + serverless proxy), Railway (Docker backend with persistent volume) |
 | Tests | pytest (backend), Node's built-in test runner (frontend) |
 
@@ -330,6 +330,30 @@ ANTARIKSHA_AI_MODE=disabled on the hosted backend ─▶ deterministic template 
   and [`frontend/.env.example`](frontend/.env.example). Real `.env` files are git-ignored.
 - Full guide: [docs/technical/DEPLOYMENT.md](docs/technical/DEPLOYMENT.md).
 
+### Telegram operator notifications
+
+Telegram provides an external notification channel for significant assessed events. It does not participate in
+orbital calculations or risk scoring, and it cannot approve or dismiss assessments, change risk values or protected
+status, bypass RBAC, or issue spacecraft commands. Telegram extends the system's reach to the operator, but it does not extend the system's authority.
+
+```
+deterministic backend assessment → stored event → notification decision → Telegram alert
+    → operator opens the ANTARIKSHA-RAKSHA console → human decision → audit
+```
+
+- **Feature:** optional and can be disabled (`TELEGRAM_ENABLED=false`); credentials alone never enable sending.
+- **Current hosted jury environment:** Telegram notifications are enabled and configured (the public
+  `/api/health` reports `telegram_configured: true`). Delivery depends on the external Telegram service.
+- **Policy:** Critical and High notify by default (`TELEGRAM_MIN_RISK=Medium` adds Medium); Low never notifies.
+  DEMO events are not notified unless `TELEGRAM_NOTIFY_DEMO=true`, and are then headed
+  "DEMO — CONTROLLED SIMULATION / This is NOT an operational conjunction warning." Alerts are de-duplicated per
+  event track and re-sent only on risk escalation; at most 5 per screening run.
+- **Audit and security:** every delivery attempt is recorded in the governance audit without the token or chat ID.
+  Credentials are backend-only deployment secrets; the browser never receives them. A failed delivery never affects
+  screening or risk computation (best-effort channel).
+- Details: [DEPLOYMENT.md §10](docs/technical/DEPLOYMENT.md#10-optional-telegram-notifications--enabled-in-the-hosted-jury-environment);
+  tests: [TESTING_VALIDATION.md](docs/technical/TESTING_VALIDATION.md#telegram-notification-validation).
+
 ## 16. Known limitations
 
 - **TLE/SGP4 accuracy is inherently limited** (errors from hundreds of metres to kilometres, growing with
@@ -447,11 +471,10 @@ Dockerfile, railway.json, .dockerignore   Backend container and Railway configur
 docs/
   architecture/          Original design blueprint (historical planning document)
   technical/             Deployment guide, testing and validation record
-  jury/                  Jury readiness notes, case studies
 demo/                    Jury demo material (storyboard, screenshots, narration, video)
 submission/
-  application/           Application material (added separately)
-  supporting/            Concept note, pitch deck
+  presentation/          Final narrated jury presentation (.pptx + PDF), narration and speaker notes
+  supporting/            Concept note, earlier pitch deck
 ```
 
 Runtime files (`data/antariksha.db`, `data/tle_cache/`) are created locally and are not part of the repository.
@@ -460,7 +483,8 @@ Runtime files (`data/antariksha.db`, `data/tle_cache/`) are created locally and 
 
 The 4:49 jury demonstration video, [`demo/video/ANTARIKSHA_RAKSHA_Jury_Demo.mp4`](demo/video/ANTARIKSHA_RAKSHA_Jury_Demo.mp4)
 (1920 × 1080), uses unedited captures of the deployed application taken on 5 Oct 2026. The collision event shown is
-a clearly labelled **controlled DEMO scenario**, not an operational warning.
+a clearly labelled **controlled DEMO scenario**, not an operational warning. Telegram notification was enabled after
+the recorded jury video and is part of the current prototype deployment; the video does not show it.
 
 | Folder | Contents |
 |---|---|
@@ -475,11 +499,13 @@ A separate static **Jury Companion** site accompanies the submission; its code i
 
 | Document | Purpose |
 |---|---|
-| [docs/technical/DEPLOYMENT.md](docs/technical/DEPLOYMENT.md) | Hosting guide (Vercel + Railway), environment variables, optional Telegram alerts |
+| [docs/technical/DEPLOYMENT.md](docs/technical/DEPLOYMENT.md) | Hosting guide (Vercel + Railway), environment variables, Telegram operator notifications |
 | [docs/technical/TESTING_VALIDATION.md](docs/technical/TESTING_VALIDATION.md) | Test coverage, results and end-to-end validation record |
 | [docs/architecture/BLUEPRINT.md](docs/architecture/BLUEPRINT.md) | Original pre-implementation blueprint (historical; this README and the code are authoritative) |
 | [submission/supporting/CONCEPT_NOTE.md](submission/supporting/CONCEPT_NOTE.md) | Concept note |
-| [submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx](submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx) | Pitch deck |
+| [submission/presentation/ANTARIKSHA-RAKSHA_Jury_Presentation.pptx](submission/presentation/ANTARIKSHA-RAKSHA_Jury_Presentation.pptx) | **Final jury presentation** (15 slides, per-slide narration audio, speaker notes; PDF copy alongside) |
+| [submission/presentation/NARRATION_AND_NOTES.md](submission/presentation/NARRATION_AND_NOTES.md) | Narration script and speaker notes for every slide |
+| [submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx](submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx) | Earlier 12-slide pitch deck (superseded by the final jury presentation) |
 
 Earth imagery: NASA Blue Marble (public domain); see `frontend/public/textures/ATTRIBUTION.md`. Orbital data:
 CelesTrak public GP data.

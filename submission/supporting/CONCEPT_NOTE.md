@@ -55,9 +55,14 @@ fallback in use):
      records a decision. No spacecraft command path exists.
    - Decisions go into a **persistent operator decision audit trail** (SQLite, CSV-exportable, no tamper protection)
      alongside a persistent screening-run log. Each decision records the acting account and role.
-   - Optional Telegram alerts (off unless enabled) notify an operator of Critical/High events once per event track
-     and tier escalation; they are notification-only and cannot approve, command or execute anything. Demo events
-     are not alerted unless explicitly enabled, and are then labelled DEMO — CONTROLLED SIMULATION.
+   - Telegram operator notifications are enabled in the current hosted jury environment. Telegram is a
+     notification-only external channel: it receives alerts after deterministic backend assessment and event
+     storage, while all evidence review and human decisions remain inside ANTARIKSHA-RAKSHA. Critical and High
+     events notify by default (Low never does); alerts are de-duplicated per event track and repeated only on risk
+     escalation; every delivery attempt is audited. Demo events are not alerted unless explicitly enabled, and are
+     then labelled DEMO — CONTROLLED SIMULATION. Telegram cannot approve or dismiss an assessment, change a risk
+     value or issue any spacecraft command, and delivery depends on the external Telegram service. The feature
+     itself is optional and can be switched off. Telegram extends the system's reach to the operator, but it does not extend the system's authority.
 
 **Operator feedback:** the most recent rejection reasons (up to 3) are inserted into later brief prompts. This is
 *in-context feedback from previous operator decisions*. No model weights are modified, and there is no training,
@@ -77,7 +82,8 @@ integration, MFA, stronger secret management and hardened identity/audit infrast
 - **Transparent and locally run:** the prototype is built mostly on open-source software (Python, FastAPI, SQLite,
   skyfield, React, CesiumJS). The AI is a local open-weight model (Llama 3.2, under Meta's license), so operation
   needs no cloud AI service and no paid API key. There is no software license cost for the current prototype.
-  External dependencies remain: CelesTrak data, optional Telegram, Google Fonts (UI typography, when online) and
+  External dependencies remain: CelesTrak data, Telegram (notification channel; optional feature, enabled in the
+  hosted jury environment), Google Fonts (UI typography, when online) and
   package registries. The submission repository is public for evaluation and carries no open-source license.
 - **Careful AI posture:**
   - local inference only

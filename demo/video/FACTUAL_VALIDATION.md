@@ -48,6 +48,16 @@ Capturing the demonstration required these real actions on the deployed system, 
 refresh fell back to the server's TLE cache, so the console showed **CACHED DATA** afterwards (an honest label; the
 next successful scheduled ingest restores LIVE DATA).
 
+## After the recording
+
+- Telegram notification was enabled after the recorded jury video and is part of the current prototype deployment.
+  The video does not show or claim Telegram notifications; the 19 verified claims above are unchanged.
+- The video shows the analytic Pc indicator as **7.71e-3** (the value on screen at capture time). Later
+  deterministic reruns of the controlled scenario can show about **7.67e-3**: each rerun rebuilds the demo geometry
+  from the then-current orbital data and evaluation time, so the refined miss distance, relative velocity and time
+  to TCA (which sets the simplified sigma, 0.1 km + 0.05 km per day) differ slightly. The indicator is deterministic
+  for a given set of inputs; the recorded video is not altered.
+
 ## Illustrative content
 
 Scenes 1–3 and 10–12 are explanatory graphics and slides, not application output. The thought-experiment orbits are

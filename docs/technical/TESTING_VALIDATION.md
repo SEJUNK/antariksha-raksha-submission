@@ -16,7 +16,7 @@ backend\venv\Scripts\python.exe -m pytest backend\tests -v
 
 Frontend: `npm test` (Node's built-in test runner) and `npm run build`, run in `frontend/`.
 
-**Recorded validation result for this submission snapshot (2026-10-06):** 652 backend tests passed, 1 backend test
+**Recorded validation result for this submission snapshot (2026-10-06; re-run unchanged on 2026-10-07):** 652 backend tests passed, 1 backend test
 skipped; 163/163 frontend tests passed; frontend production build passed. Total automated tests passing: **815**, with
 1 skipped. The skipped test (`test_ingest_resolution.py`) requires a local TLE cache, which is not shipped in this
 repository.
@@ -57,6 +57,36 @@ network access or Ollama.
 | Deployment configuration | `frontend/src/deploy.test.js` | `frontend/vercel.json` is valid JSON with known keys only: framework `vite`, `npm run build`, output `dist`, function `maxDuration`, no `crons` entry (Hobby-safe; the backend's internal scheduler provides the 2-hour cadence), the `/api/*` → `api/proxy.js` rewrite, an SPA rewrite that does not capture `/api/*`, and no secrets; `.env.example` templates hold only empty values or obvious placeholders for secret-like keys and document the deployment variables |
 | Status, freshness, decision audit | db / API / status suites, where present | Mode labelling (LIVE / CACHED / STALE / DEMO / NOT SCREENED); `screening_runs` provenance; `decision_log` keeps event ID, `is_demo`, screening run ID and TCA across screening runs |
 
+
+## Telegram Notification Validation
+
+Telegram is an external notification dependency; failure of Telegram delivery must not affect deterministic
+screening or risk computation. The suite `backend/tests/test_telegram_notify.py` (25 test cases, all passing in
+the run recorded above) uses no real network: the Bot API call is replaced by a recorder. Current hosted state:
+Telegram is enabled and configured in the jury environment (public `/api/health` → `telegram_configured: true`);
+real delivery depends on the external Telegram service and is not part of the automated suite.
+
+| # | Behaviour | Evidence |
+|---|---|---|
+| 1 | Telegram disabled → no notification sent (even with credentials present) | `test_disabled_by_default_even_with_credentials`; `test_health_flag_true_only_when_enabled_and_configured` |
+| 2 | Enabled and configured → notification path invoked | `test_dedup_same_track_same_tier_notifies_once_and_escalation_again`; `test_send_uses_timeout_and_success_result` |
+| 3 | Missing configuration handled safely | `test_enabled_but_missing_credential_fails_gracefully` (token and chat id); `test_first_failure_stops_the_run_and_unconfigured_audits_once` |
+| 4 | Critical/High notify by default; threshold uses existing tiers | `test_min_risk_policy_uses_existing_tiers` |
+| 5 | Low (and, by default, Medium) does not notify | `test_low_and_medium_not_notified_by_default_and_new_track_notifies` |
+| 6 | DEMO suppressed by default; labelled "DEMO — CONTROLLED SIMULATION" when enabled | `test_demo_events_suppressed_by_default_and_labelled_when_enabled`; `test_message_demo_label_and_review_link`; `test_demo_message_does_not_claim_live_catalog_data` |
+| 7 | De-duplication per event track | `test_dedup_same_track_same_tier_notifies_once_and_escalation_again` |
+| 8 | Risk escalation notifies again; de-escalation does not | same test (High → Critical sends; High again and Critical again do not) |
+| 9 | At most 5 alerts per screening run; the rest deferred to the next run | `test_alerts_per_run_are_capped_and_deferred_to_next_run` |
+| 10 | Failed delivery does not break screening | `test_pipeline_survives_telegram_timeout`; `test_pipeline_survives_notifier_crash`; `test_delivery_failures_are_reported_not_raised` |
+| 11 | Credentials never in logs, results, status, health or audit rows | `test_token_never_in_logs_results_or_status`; `test_status_and_test_endpoints_rbac_csrf_and_no_secrets`; audit rows checked in the de-duplication test |
+| 12 | Delivery attempts recorded in the governance audit (sent / failed / unconfigured / test) | `test_failed_delivery_is_audited_and_retried_next_run`; de-duplication test; `test_status_and_test_endpoints_rbac_csrf_and_no_secrets` |
+| 13 | A notification cannot approve or dismiss | Validated by implementation review: `backend/notify.py` only reads stored events (SELECT) and writes its own `notification` audit rows; it calls no decision function, and there is no inbound Telegram path (no webhook, no polling). Decisions require an authenticated `decide` principal (`test_jury_attack_cases.py::test_F_*`). |
+| 14 | A notification cannot command a spacecraft | Validated by implementation review (the only outbound call is Telegram `sendMessage`) and by `test_jury_attack_cases.py::test_F_no_endpoint_can_command_a_spacecraft`; each message carries "not an operational maneuver command" (`test_message_contains_event_facts_and_boundary`) |
+
+Also covered: the status and test endpoints require ADMINISTRATOR, a session and the CSRF header; the test message
+is server-built (client text ignored) and rate-limited (`test_status_and_test_endpoints_rbac_csrf_and_no_secrets`);
+messages handle missing values (`test_message_handles_zero_or_missing_values`); proximity messages carry no Pc or
+velocity (`test_proximity_message_has_no_pc_or_velocity`).
 ---
 
 ## 2. Resilience behaviours implemented in code

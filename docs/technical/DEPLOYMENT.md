@@ -134,7 +134,7 @@ set `CRON_SECRET` and `SCHEDULER_SECRET` on Vercel, `SCHEDULER_SECRET` (same val
 | `ANTARIKSHA_OLLAMA_URL` / `ANTARIKSHA_OLLAMA_MODEL` | only with `ollama`: `http://127.0.0.1:11434/api/generate` / `llama3.2:3b` | Local Ollama, never exposed |
 | `ANTARIKSHA_BOOTSTRAP_ADMIN_USERNAME` / `_PASSWORD` | set once if the host has no shell, then remove | One-time first administrator |
 | `SCHEDULER_SECRET` | only for the optional Vercel Cron path | Scheduled-refresh endpoint secret |
-| `TELEGRAM_ENABLED` / `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | optional (§10); off unless `TELEGRAM_ENABLED=true` | Telegram alerts (backend secrets) |
+| `TELEGRAM_ENABLED` / `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | optional feature (§10); off unless `TELEGRAM_ENABLED=true`; **enabled on the hosted jury backend** | Telegram alerts (backend secrets) |
 | `TELEGRAM_MIN_RISK` / `TELEGRAM_NOTIFY_DEMO` / `ANTARIKSHA_PUBLIC_APP_URL` | optional: `High` / `false` / `https://<your-project>.vercel.app` | Alert policy and review link |
 | `ANTARIKSHA_API_KEY` | optional | Extra deployment gate on writes |
 
@@ -220,7 +220,7 @@ Prerequisites: Railway CLI (`npm i -g @railway/cli`) and `railway login` (intera
 - Keep HTTPS end to end and `ANTARIKSHA_COOKIE_SECURE=true` in hosted mode.
 - Authentication, RBAC, audit, last-known-good protection and scheduler guards stay enabled in every mode.
 - Vercel needs read access to the repository through its GitHub integration.
-- Telegram credentials (if used) are Railway variables only; the browser never receives them (§10).
+- Telegram credentials (set on the hosted jury backend) are Railway variables only; the browser never receives them (§10).
 
 ## 9. Limitations
 
@@ -230,14 +230,20 @@ Prerequisites: Railway CLI (`npm i -g @railway/cli`) and `railway login` (intera
   TCA, miss distance, relative velocity, Pc indicator and risk never depend on an LLM.
 - SQLite on one volume means exactly one backend instance; scaling out would need the managed-database migration of §1.
 
-## 10. Optional Telegram notifications
+## 10. Optional Telegram notifications — enabled in the hosted jury environment
 
 **Feature.** The backend can push a short alert to one Telegram chat when screening produces a significant event.
 **Architecture:** notification is an external alert channel connected to the backend, not to the physics engine —
 it runs after a screening run's events are stored and only reads stored values.
 **Operational boundary:** Telegram notifications do not authorize or execute spacecraft maneuvers; they cannot
 approve or dismiss an assessment, change data or risk values, or bypass RBAC. The operator opens the console and
-decides there. **Telegram is optional; the application works without it.**
+decides there. Telegram extends the system's reach to the operator, but it does not extend the system's authority.
+
+**Feature vs current deployment.** As a feature, Telegram is optional and can be disabled; the application works
+without it. In the **current hosted jury environment it is enabled and configured**: the public `/api/health`
+endpoint reported `telegram_configured: true` (meaning `TELEGRAM_ENABLED=true` and both credentials present) when
+checked on 7 Oct 2026. Telegram notifications are enabled/configured in the hosted jury environment; delivery
+depends on the external Telegram service. DEMO notifications follow `TELEGRAM_NOTIFY_DEMO` (off by default).
 
 ```
 CelesTrak → ingest → SGP4 → screening → TCA → miss / rel. velocity / analytic Pc → risk tier → stored events
