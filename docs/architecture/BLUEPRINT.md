@@ -1,9 +1,9 @@
 > **Historical design blueprint (pre-implementation planning document).** Where it differs from README.md's capability matrix, README.md and the code are authoritative. Figures, claims, and roadmap items here are planning statements, not verified capabilities. In particular: the system is a research/demo prototype, not an operational collision-warning service; its Pc is a simplified analytic encounter-plane indicator (not an operational covariance-based Pc; the Monte Carlo design below was replaced); its Δv figure is illustrative, not a maneuver recommendation; the AI "reviewer" is a second-pass consistency check by the same local LLM, not independent validation; and there is no integration with ISRO, IS4OM, NETRA or any other organization. The AI does not learn (rejection reasons are prompt context only, with no training); the audit trail is a local SQLite log with no tamper protection; the system is offline-capable only after the first TLE download; and the repository carries no open-source licence.
 
 # ANTARIKSHA-RAKSHA — Enhanced End-to-End Technical Blueprint (v2, Space + Defense Edition)
-### Build specification for AI-assisted implementation (any coding agent)
+### ANTARIKSHA-RAKSHA — Technical Build Specification
 
-**How to use this document:** Place this file as `BLUEPRINT.md` in an empty repo root and instruct the coding agent: *"Implement this blueprint end-to-end, phase by phase, following Section 12 build order. Do not skip acceptance criteria in Section 13."* It is self-contained — every module, schema, endpoint, algorithm, and prompt needed is specified. Where a judgment call was needed, one has already been made so the agent does not need to stop and ask.
+**Implementation Guide:** This document provides the complete technical specification, architecture, modules, schemas, algorithms, interfaces and acceptance criteria required to implement the system end-to-end. Follow the build order defined in Section 12 and verify all acceptance criteria in Section 13. It is self-contained — every module, schema, endpoint, algorithm, and prompt needed is specified. Where a design decision was needed, it has already been made and is recorded here.
 
 ---
 
@@ -28,7 +28,7 @@
 5. **Working data set:** ~100–150 tracked objects (real Indian satellites + selected foreign satellites + real debris including Fengyun-1C ASAT fragments), not the full 30,000+ object catalog. Full-catalog scale is documented as future work only.
 6. **Human-in-the-loop is a hard requirement**, not configurable: the system must never auto-execute a maneuver. It only presents assessments; every assessment is presented for a human decision, which is recorded and commands nothing.
 7. **Everything must run offline after the initial TLE download** — the LLM must be local (Ollama), so the demo works without network at presentation time (as implemented: offline-capable after caching; the globe uses Cesium's bundled Natural Earth II imagery).
-8. **All software must be free/open-source** (as implemented: open-source software plus the open-weight Llama 3.2 model under Meta's license, which is not OSI open source; external dependencies on CelesTrak and package registries remain). If the agent is tempted to use anything requiring a license, API key with payment, or Cesium ion paid token — don't; use the free alternative specified.
+8. **All software must be free/open-source** (as implemented: open-source software plus the open-weight Llama 3.2 model under Meta's license, which is not OSI open source; external dependencies on CelesTrak and package registries remain). Do not use anything requiring a license, an API key with payment, or a Cesium ion paid token; use the free alternative specified.
 
 ---
 
@@ -45,7 +45,7 @@
 | Frontend | React 18 via Vite | |
 | 3D globe | CesiumJS (via `resium` or thin wrapper) | free default imagery; NO Cesium ion token |
 | HTTP client (frontend) | native `fetch` | |
-| Styling | plain CSS or Tailwind (agent's choice, consistent) | dark theme per Section 9 |
+| Styling | plain CSS or Tailwind (implementer's choice, consistent) | dark theme per Section 9 |
 | Packaging | `pip` + `requirements.txt`; `npm` | no poetry/yarn |
 
 ---
@@ -372,7 +372,7 @@ Three-column internal layout:
 
 Eyebrow `ASSET STATUS`. Grouped by `TIER 1 — STRATEGIC`, `TIER 2 — OBSERVATION`, `TIER 3 — CIVIL`. Each asset row: status dot (`--safe` if no pending event, tier-risk color if involved in one, with pulse when Critical) + name (Inter 13px) + NORAD ID (mono 11px, `--text-secondary`). Clicking an asset flies the camera to it.
 
-### 9.9 Micro-interaction & polish checklist (the agent must verify each)
+### 9.9 Micro-interaction & polish checklist (verify each)
 
 - [ ] All numeric values everywhere are IBM Plex Mono.
 - [ ] Live UTC clock ticks every second.
@@ -404,7 +404,7 @@ If real data produces no event in the window, this script perturbs one debris ob
 
 ## 11. README Requirements
 
-The agent must write a README containing: project positioning paragraph (Section 0), architecture diagram (ASCII acceptable), quickstart (backend, Ollama pull command, frontend), the offline-demo procedure (run once online to cache TLEs → disconnect → full demo works), Limitations section (Section 7.4 items), and Future Work (full catalog scale, indigenous sensor ingestion, covariance-based Pc from CDMs, NavIC-time integration).
+The README must contain: project positioning paragraph (Section 0), architecture diagram (ASCII acceptable), quickstart (backend, Ollama pull command, frontend), the offline-demo procedure (run once online to cache TLEs → disconnect → full demo works), Limitations section (Section 7.4 items), and Future Work (full catalog scale, indigenous sensor ingestion, covariance-based Pc from CDMs, NavIC-time integration).
 
 ---
 
@@ -440,9 +440,9 @@ The agent must write a README containing: project positioning paragraph (Section
 
 ---
 
-## 14. Notes for the Implementing Agent
+## 14. Implementation Notes
 
 - Prefer clear, well-commented code over clever abstractions — judges' technical reviewers should understand it quickly.
 - If a library call signature here is slightly off (APIs drift), use the closest correct equivalent and note the deviation in a comment — do not stall on minor details.
 - Verify NORAD IDs / CelesTrak group names at build time; substitute equivalents with a comment if any object has decayed.
-- Stop and ask the user only if: CelesTrak's endpoint structure has changed significantly, Ollama is not installed/reachable at all, or a design decision would materially change what the demo video shows.
+- Escalate for a design decision only if: CelesTrak's endpoint structure has changed significantly, Ollama is not installed/reachable at all, or a design decision would materially change what the demo video shows.

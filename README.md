@@ -471,8 +471,6 @@ A separate static **Jury Companion** site accompanies the submission; its code i
 |---|---|
 | [docs/technical/DEPLOYMENT.md](docs/technical/DEPLOYMENT.md) | Hosting guide (Vercel + Railway), environment variables, optional Telegram alerts |
 | [docs/technical/TESTING_VALIDATION.md](docs/technical/TESTING_VALIDATION.md) | Test coverage, results and end-to-end validation record |
-| [docs/jury/ANTARIKSHA_RAKSHA_Jury_Readiness.md](docs/jury/ANTARIKSHA_RAKSHA_Jury_Readiness.md) | Jury question-and-answer preparation |
-| [docs/jury/CASE_STUDIES.md](docs/jury/CASE_STUDIES.md) | Worked case studies |
 | [docs/architecture/BLUEPRINT.md](docs/architecture/BLUEPRINT.md) | Original pre-implementation blueprint (historical; this README and the code are authoritative) |
 | [submission/supporting/CONCEPT_NOTE.md](submission/supporting/CONCEPT_NOTE.md) | Concept note |
 | [submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx](submission/supporting/ANTARIKSHA_RAKSHA_Pitch.pptx) | Pitch deck |

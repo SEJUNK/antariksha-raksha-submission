@@ -24,8 +24,7 @@ Making the backend serverless would require a managed database migration, DB-bac
 of which is done (and none is needed for jury validation).
 
 **Minimum additional infrastructure:** one long-running Python process with a persistent disk, reachable over
-HTTPS. The production path is **Railway** (one service + one volume, §7 Option B). The demo laptop behind a Cloudflare
-quick tunnel (§7 Option A) remains an optional local/testing fallback and is not required for production.
+HTTPS. The hosted validation path uses **Railway** for the backend (one service + one volume, §7).
 
 ## 2. Modes
 
@@ -37,7 +36,7 @@ Browser ──▶ local frontend (Vite, :5173) ──▶ local FastAPI (:8000) �
                                                     └──▶ local Ollama llama3.2:3b (127.0.0.1:11434, never exposed)
 ```
 
-### Hosted mode (production path: Vercel + Railway)
+### Hosted mode (jury validation path: Vercel + Railway)
 
 ```
 Browser ──HTTPS──▶ Vercel (frontend/: static Vite build)
@@ -53,7 +52,8 @@ Browser ──HTTPS──▶ Vercel (frontend/: static Vite build)
                      └── AI: ANTARIKSHA_AI_MODE=disabled → deterministic template briefs
 ```
 
-No laptop, tunnel, localhost or Ollama is involved in this path.
+No local machine, localhost or Ollama is involved in this path. Optional local Ollama applies only to local development
+(local mode above); the hosted Railway backend does not depend on it.
 
 If Ollama is not installed on the backend host, set `ANTARIKSHA_AI_MODE=disabled`. The UI then shows
 **AI FALLBACK ACTIVE — DETERMINISTIC ASSESSMENT AVAILABLE**, briefs use the labelled deterministic template, and all
@@ -81,22 +81,20 @@ Proxy behaviour (`api/proxy.js`):
 No backend secret, scheduler secret, Ollama URL or backend address is bundled into the browser build when
 `VITE_API_BASE_URL` is empty (verified by scanning a production build).
 
-## 4. Backend host options
+## 4. Hosted components
 
 The backend needs: Python 3.11+, outbound HTTPS to celestrak.org, a persistent disk, one always-running process, and
-inbound HTTPS.
+inbound HTTPS. The hosted validation environment uses:
 
-| Option | Account needed | Cost | Persistent disk | Always running (2-h scheduler) | Notes |
-|---|---|---|---|---|---|
-| **A. Demo laptop + Cloudflare quick tunnel** | None | Free | Yes (laptop disk) | Only while the laptop and tunnel run | Fastest path for a validation window; local Ollama keeps working. Testing-only service, no uptime guarantee, random `*.trycloudflare.com` URL that changes on every restart (update `BACKEND_URL` and redeploy). |
-| **B1. Railway (Hobby) — selected production host** | Railway | ~US$5/month (includes US$5 usage credit) + volume ~US$0.15/GB-month | Yes (volume) | Yes | Repository ships `Dockerfile`, `.dockerignore` and `railway.json` (1 replica, health check `/api/health`). |
-| **B2. Fly.io** | Fly.io (card) | Pay-as-you-go, ~US$2/month for a 256 MB shared VM + US$0.15/GB-month volume | Yes (volume) | Yes (disable auto-stop) | No free allowance for new accounts. 256 MB may be tight; 512 MB is safer. |
-| Render free web service | Render | Free | **No** (disks are paid) | **No** (sleeps after 15 min idle) | Not suitable: data loss on restart, scheduler stops. |
-| Vercel Functions | Vercel | — | **No** | **No** | Not suitable (§1). |
+| Component | Platform | Purpose |
+|---|---|---|
+| Frontend | Vercel | Static React/Vite application and the same-origin API proxy (`api/proxy.js`) |
+| Backend | Railway (Hobby) — selected hosted validation environment | Long-running FastAPI process (1 replica, health check `/api/health`) |
+| Persistence | Railway volume (`/data`) | SQLite database + TLE/OMM cache |
+| Orbital data | CelesTrak | Public GP/TLE/OMM data |
+| AI | Optional local Ollama (local development only) | Explanation layer; disabled on the hosted backend (deterministic template) |
 
-Facts checked on 2026-10-04 (verify current terms before signing up): Render free tier sleeps after 15 minutes and
-cannot attach a disk; Railway Hobby is US$5/month with volumes at US$0.15/GB-month; Fly.io has no free allowance for
-new accounts and volumes cost US$0.15/GB-month; Cloudflare quick tunnels need no account and are for testing only.
+Vercel Functions cannot host the backend (§1).
 
 The backend is started with one command (§6). For Railway the repository root contains a `Dockerfile` (backend only,
 `python:3.13-slim`, binds `0.0.0.0:$PORT`, `--workers 1`), a `.dockerignore` (never ships databases, `.env` files or
@@ -132,7 +130,7 @@ set `CRON_SECRET` and `SCHEDULER_SECRET` on Vercel, `SCHEDULER_SECRET` (same val
 | `ANTARIKSHA_COOKIE_SECURE` | `true` | Session cookie only over HTTPS |
 | `ANTARIKSHA_SESSION_HOURS` | `12` | Session lifetime |
 | `ANTARIKSHA_SCHEDULER_MODE` | `internal` | 2-hour refresh by the backend itself |
-| `ANTARIKSHA_AI_MODE` | `disabled` (no Ollama on the host) or `ollama` (Option A laptop) | AI explanation layer |
+| `ANTARIKSHA_AI_MODE` | `disabled` (hosted Railway backend, no Ollama) or `ollama` (local development with local Ollama) | AI explanation layer |
 | `ANTARIKSHA_OLLAMA_URL` / `ANTARIKSHA_OLLAMA_MODEL` | only with `ollama`: `http://127.0.0.1:11434/api/generate` / `llama3.2:3b` | Local Ollama, never exposed |
 | `ANTARIKSHA_BOOTSTRAP_ADMIN_USERNAME` / `_PASSWORD` | set once if the host has no shell, then remove | One-time first administrator |
 | `SCHEDULER_SECRET` | only for the optional Vercel Cron path | Scheduled-refresh endpoint secret |
@@ -171,26 +169,7 @@ template: `.env.example` and `frontend/.env.example`.
 
 ## 7. Manual deployment steps
 
-### Option A — demo laptop + Cloudflare quick tunnel (optional local/testing fallback, not production)
-
-1. On the laptop, start the backend with hosted settings (PowerShell):
-   ```
-   $env:ANTARIKSHA_CORS_ORIGINS="http://localhost:5173,https://<your-project>.vercel.app"
-   $env:ANTARIKSHA_COOKIE_SECURE="true"
-   backend\venv\Scripts\python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --workers 1
-   ```
-   (Local Ollama keeps working; leave `ANTARIKSHA_AI_MODE` unset.)
-2. Install `cloudflared` (`winget install --id Cloudflare.cloudflared`) and run
-   `cloudflared tunnel --url http://localhost:8000`. Copy the printed `https://<random>.trycloudflare.com` URL.
-   Only port 8000 is tunnelled — never tunnel Ollama's port 11434.
-3. Vercel → Add New Project → import the GitHub repository → Root Directory `frontend` → Framework Vite.
-4. Environment variables: `BACKEND_URL=https://<random>.trycloudflare.com`, `VITE_API_BASE_URL=` (empty) → Deploy.
-5. Put the Vercel production domain into `ANTARIKSHA_CORS_ORIGINS` (step 1) if it differs, and restart the backend.
-6. Open `https://<your-project>.vercel.app`, sign in with an account created by
-   `python -m backend.users create ...`, and check the header (role chip, AI status) and `https://<your-project>.vercel.app/api/health`.
-7. When the tunnel restarts its URL changes: update `BACKEND_URL` in Vercel and redeploy.
-
-### Option B — Railway (production, always on)
+### Railway backend + Vercel frontend (hosted validation environment, always on)
 
 Prerequisites: Railway CLI (`npm i -g @railway/cli`) and `railway login` (interactive; never paste tokens anywhere).
 
@@ -224,9 +203,12 @@ Prerequisites: Railway CLI (`npm i -g @railway/cli`) and `railway login` (intera
    Expect `"ok": true`, `"ai": {"mode": "disabled", "status": "AI_FALLBACK_ACTIVE"}` and `"scheduler": {"mode": "internal"}`.
 6. No migrated database? Create the first administrator in the service shell:
    `railway ssh -- python -m backend.users create --username <name> --role ADMINISTRATOR` (prompts for the password).
-7. Point Vercel at Railway (from `frontend/`): `vercel env rm BACKEND_URL production`, `vercel env add BACKEND_URL
-   production` (value `https://<service>.up.railway.app`), keep `VITE_API_BASE_URL` empty, then
-   `vercel deploy --prod --yes`.
+7. Frontend on Vercel: Vercel → Add New Project → import the GitHub repository → Root Directory `frontend` →
+   Framework Vite. Point it at Railway (from `frontend/`): `vercel env rm BACKEND_URL production`,
+   `vercel env add BACKEND_URL production` (value `https://<service>.up.railway.app`), keep `VITE_API_BASE_URL`
+   empty, then `vercel deploy --prod --yes`. Make sure the Vercel domain is in `ANTARIKSHA_CORS_ORIGINS` (step 2).
+   Open `https://<your-project>.vercel.app`, sign in, and check the header (role chip, AI status) and
+   `https://<your-project>.vercel.app/api/health`.
 8. Operate: `railway restart` (restart the running deployment), `railway redeploy` (rebuild the latest), `railway logs`
    (look for `Internal scheduler started` once per start), `railway volume files list /` (persistent files). Data on
    `/data` survives restarts and redeploys.
@@ -237,8 +219,6 @@ Prerequisites: Railway CLI (`npm i -g @railway/cli`) and `railway login` (intera
 - Never expose Ollama (11434) or the SQLite file; only the FastAPI port is published.
 - Keep HTTPS end to end and `ANTARIKSHA_COOKIE_SECURE=true` in hosted mode.
 - Authentication, RBAC, audit, last-known-good protection and scheduler guards stay enabled in every mode.
-- A quick tunnel makes the backend reachable by anyone who has the URL; access still requires login, but use it only
-  for the validation window.
 - Vercel needs read access to the repository through its GitHub integration.
 - Telegram credentials (if used) are Railway variables only; the browser never receives them (§10).
 
@@ -293,22 +273,11 @@ CSRF header, one per 60 s, audited) sends a fixed server-built test message — 
 **Limitation.** Telegram delivery depends on external Telegram service availability; alerts are best-effort (no
 delivery guarantee, retries beyond the next run, or escalation).
 
-**Setup (placeholders only — never paste the token into chats, tickets or documents):**
-1. In Telegram, open **@BotFather** → `/newbot` → choose a name and username. BotFather replies with
-   `<TELEGRAM_BOT_TOKEN>`; keep it private.
-2. Create or pick the destination chat (a private chat with the bot, or a group with the bot added) and send it any
-   message.
-3. Find `<TELEGRAM_CHAT_ID>`: open `https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getUpdates` in your own browser
-   and read `"chat":{"id": ...}` (group ids are negative).
-4. Set the Railway variables (from the repository root; values typed by you, never committed):
-   ```
-   railway variables --set TELEGRAM_BOT_TOKEN=<TELEGRAM_BOT_TOKEN> --set TELEGRAM_CHAT_ID=<TELEGRAM_CHAT_ID>
-   railway variables --set TELEGRAM_ENABLED=true --set ANTARIKSHA_PUBLIC_APP_URL=https://<your-project>.vercel.app
-   ```
-   Changing variables redeploys the service; otherwise `railway restart`.
-5. Sign in as an ADMINISTRATOR → **Users** panel → **Telegram notifications** shows *Enabled* → **Send test
-   notification**, and confirm the message arrives.
-6. To disable: `railway variables --set TELEGRAM_ENABLED=false` (or delete the variables). Nothing else changes.
+**Setup (summary; placeholders only — never paste the token into chats, tickets or documents).** Create a bot with
+Telegram's @BotFather and obtain `<TELEGRAM_BOT_TOKEN>` and the destination `<TELEGRAM_CHAT_ID>`. Set them as Railway
+variables together with `TELEGRAM_ENABLED=true` and `ANTARIKSHA_PUBLIC_APP_URL=https://<your-project>.vercel.app`
+(values typed by the operator, never committed). Verify as an ADMINISTRATOR in **Users** → **Telegram notifications**
+→ **Send test notification**. To disable, set `TELEGRAM_ENABLED=false`; nothing else changes.
 
 **Jury demonstration path.**
 1. Start in LIVE DATA. 2. (Optional, for the demo only) set `TELEGRAM_NOTIFY_DEMO=true`. 3. Run the controlled
