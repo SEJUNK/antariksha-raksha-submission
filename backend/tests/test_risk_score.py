@@ -197,7 +197,7 @@ def test_pipeline_chain_pc_uses_tca_not_window_midpoint():
     objects = [{"norad_id": "10001", "object_type": "satellite"},
                {"norad_id": "30003", "object_type": "debris"}]
     events = find_close_approaches(times, {"10001": pos_a, "30003": pos_b},
-                                   step_seconds=60, objects=objects)
+                                   step_seconds=60, objects=objects, group_a_ids={"10001"})
     assert len(events) == 1
     evt = events[0]
     assert np.linalg.norm(pos_a[n // 2] - pos_b[n // 2]) > 90.0

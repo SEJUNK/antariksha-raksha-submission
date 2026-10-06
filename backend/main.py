@@ -109,9 +109,15 @@ def _startup():
     init_db()
     from backend.db import ensure_protected_assets_seeded
 
-    if ensure_protected_assets_seeded(config.WORKING_SET_PATH):
-        logger.info("Protected-asset registry seeded once from data/working_set.json group_a; the database "
-                    "registry is authoritative from now on.")
+    from backend.db import ProtectedAssetSeedError
+
+    try:
+        if ensure_protected_assets_seeded(config.WORKING_SET_PATH):
+            logger.info("Protected-asset registry seeded once from data/working_set.json group_a; the database "
+                        "registry is authoritative from now on.")
+    except ProtectedAssetSeedError as exc:
+        # Fail safe: nothing seeded or recorded; refreshes are refused until the source is fixed.
+        logger.error("%s", exc)
     bootstrap_users()
     if "*" in config.CORS_ORIGINS:
         logger.error("ANTARIKSHA_CORS_ORIGINS contains '*': ignored (credentialed CORS needs explicit origins).")
@@ -147,7 +153,15 @@ def _shutdown():
 # for an adjusted object carry demo_adjusted=True.
 @app.get("/api/objects")
 def get_objects():
-    return current_positions(objects=list_objects_with_demo_overrides())
+    from backend.db import resolved_protected_norad_ids
+
+    # `protected` comes from the protected-asset registry as resolved by the
+    # latest successful refresh -- the same source as screening.
+    protected_ids = resolved_protected_norad_ids()
+    objects = current_positions(objects=list_objects_with_demo_overrides())
+    for o in objects:
+        o["protected"] = str(o.get("norad_id")) in protected_ids
+    return objects
 
 
 @app.get("/api/tracks")

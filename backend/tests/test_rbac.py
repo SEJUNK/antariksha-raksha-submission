@@ -714,3 +714,19 @@ def test_brief_agent_does_not_touch_registry_or_user_admin():
     for forbidden in ("protected-assets", "create_protected_asset", "update_protected_asset",
                       "set_protected_asset_status", "/api/admin", "backend.auth", "update_user"):
         assert forbidden not in src
+
+
+def test_verify_password_enforces_minimum_iterations_and_strict_base64():
+    import base64
+    import hashlib
+
+    from backend.auth import PBKDF2_MIN_ITERATIONS, hash_password, verify_password
+    salt = b"0123456789abcdef"
+    weak = hashlib.pbkdf2_hmac("sha256", b"a-long-password", salt, 1000)
+    weak_hash = "$".join(("pbkdf2_sha256", "1000", base64.b64encode(salt).decode(), base64.b64encode(weak).decode()))
+    assert PBKDF2_MIN_ITERATIONS > 1000
+    assert not verify_password("a-long-password", weak_hash)       # below policy minimum
+    good = hash_password("a-long-password")
+    scheme, it, s_b64, h_b64 = good.split("$")
+    assert verify_password("a-long-password", good)
+    assert not verify_password("a-long-password", "$".join((scheme, it, s_b64 + "!", h_b64)))  # non-base64

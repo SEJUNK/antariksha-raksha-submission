@@ -85,10 +85,10 @@ def verify_password(password: str, stored: str) -> bool:
     try:
         scheme, iter_s, salt_b64, hash_b64 = stored.split("$")
         iterations = int(iter_s)
-        if scheme != _HASH_SCHEME or iterations < 1:
+        if scheme != _HASH_SCHEME or iterations < PBKDF2_MIN_ITERATIONS:
             return False
-        salt = base64.b64decode(salt_b64)
-        expected = base64.b64decode(hash_b64)
+        salt = base64.b64decode(salt_b64, validate=True)
+        expected = base64.b64decode(hash_b64, validate=True)
     except (AttributeError, ValueError, TypeError):
         return False
     candidate = hashlib.pbkdf2_hmac("sha256", (password or "").encode("utf-8"), salt, iterations)

@@ -13,7 +13,7 @@ template enforces this) -- distances and durations only, never intent.
 import numpy as np
 
 from backend.config import PROXIMITY_DWELL_MIN_STEPS, PROXIMITY_WATCH_KM
-from backend.db import list_objects
+from backend.db import list_objects, resolved_protected_norad_ids
 
 
 def _geometry_from_range_rate(pos_a, pos_b, step_seconds, mid_idx):
@@ -42,8 +42,8 @@ def dwell_minutes_for_run(n_samples, step_seconds):
     return (n_samples - 1) * step_seconds / 60.0
 
 
-def detect_proximity_operations(times, positions_grid, step_seconds=None, objects=None):
-    """For each (Indian asset, Group C satellite) pair, count consecutive
+def detect_proximity_operations(times, positions_grid, step_seconds=None, objects=None, group_a_ids=None):
+    """For each (protected asset, Group C satellite) pair, count consecutive
     time steps where separation < PROXIMITY_WATCH_KM. If the longest such
     dwell run >= PROXIMITY_DWELL_MIN_STEPS, emit a proximity_watch event.
 
@@ -62,6 +62,12 @@ def detect_proximity_operations(times, positions_grid, step_seconds=None, object
     time of minimum separation within the dwell segment -- the same instant
     as min_distance_km), min_distance_km, dwell_minutes, geometry (range-rate
     sign at the dwell midpoint). `objects` defaults to list_objects().
+
+    Protected assets (Group A) are the objects resolved to active
+    operator-managed protected-asset registry entries by the latest successful
+    refresh (db.resolved_protected_norad_ids(); `group_a_ids` overrides it in
+    unit tests) -- never inferred from object type. Only the asset selection
+    uses the registry; the dwell detection itself is unchanged.
     """
     if step_seconds is None:
         step_seconds = (times[1] - times[0]).total_seconds() if len(times) > 1 else 60
@@ -69,8 +75,11 @@ def detect_proximity_operations(times, positions_grid, step_seconds=None, object
     if objects is None:
         objects = list_objects()
     objects_by_id = {o["norad_id"]: o for o in objects}
-    indian_ids = [nid for nid, o in objects_by_id.items() if o["object_type"] == "satellite" and nid in positions_grid]
-    foreign_ids = [nid for nid, o in objects_by_id.items() if o["object_type"] == "foreign_sat" and nid in positions_grid]
+    protected_ids = (resolved_protected_norad_ids() if group_a_ids is None
+                     else {str(i) for i in group_a_ids})
+    indian_ids = [nid for nid in objects_by_id if str(nid) in protected_ids and nid in positions_grid]
+    foreign_ids = [nid for nid, o in objects_by_id.items()
+                   if o["object_type"] == "foreign_sat" and nid in positions_grid and nid not in indian_ids]
 
     events = []
     for a_id in indian_ids:

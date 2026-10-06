@@ -343,3 +343,33 @@ def test_ingest_resolution_unchanged_with_db_registry(ws, monkeypatch, tmp_path)
     assert ingest.fetch_tles.resolution == {"A:ASSET-1": "40001", "A:ASSET-2": "40002", "C:FOREIGN-1": "40004"}
     [u] = ingest.fetch_tles.unresolved
     assert u["name_query"] == "ASSET-3" and u["reason"].startswith("ambiguous")
+
+
+# --- Initial seed source must be valid (no permanently empty registry) -------
+
+@pytest.mark.parametrize("content", [None, "{not json", json.dumps({"group_a": "x"}),
+                                     json.dumps({"group_a": [{"name_query": "X", "criticality": "Bad"}]})])
+def test_initial_seed_refuses_missing_or_invalid_source_and_records_nothing(tmp_path, monkeypatch, content):
+    monkeypatch.setattr("backend.db.DB_PATH", tmp_path / "seed_test.db")
+    from backend.db import (ProtectedAssetSeedError, ensure_protected_assets_seeded, get_connection, init_db,
+                            list_protected_assets)
+    init_db()
+    src = tmp_path / "ws.json"
+    if content is not None:
+        src.write_text(content, encoding="utf-8")
+    with pytest.raises(ProtectedAssetSeedError):
+        ensure_protected_assets_seeded(src)
+    conn = get_connection()
+    seeded = conn.execute("SELECT 1 FROM catalog_meta WHERE key = 'protected_assets_seeded_at'").fetchone()
+    conn.close()
+    assert seeded is None and list_protected_assets() == []
+    # Once the source is fixed, the one-time seed still happens.
+    src.write_text(json.dumps({"group_a": WS_GROUP_A}), encoding="utf-8")
+    assert ensure_protected_assets_seeded(src) == len(WS_GROUP_A)
+
+
+def test_already_seeded_registry_ignores_a_later_broken_source(ws, tmp_path):
+    from backend.db import ensure_protected_assets_seeded, list_protected_assets
+    before = list_protected_assets()
+    assert ensure_protected_assets_seeded(tmp_path / "does-not-exist.json") == 0
+    assert list_protected_assets() == before

@@ -67,6 +67,11 @@ def demo_db(tmp_path, monkeypatch):
     upsert_object("90002", "TEST-DEBRIS-FRAG", "debris", None, None, debris_l1, debris_l2)
     upsert_object("90003", "TEST-FOREIGN-SAT", "foreign_sat", "foreign", None, foreign_l1, foreign_l2)
 
+    # Protected (Group A) membership comes from a successful ingest resolution
+    # of an active registry entry, as in the real lifecycle -- not object type.
+    from backend.tests._registry_helpers import protect
+    protect("90001", "TEST-ASSET-SAT")
+
     return tmp_path / "demo_test.db"
 
 

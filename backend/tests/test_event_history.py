@@ -103,6 +103,11 @@ def hist_db(tmp_path, monkeypatch):
     upsert_object("2", "DEB-2", "debris", None, None, "l1", "l2")
     upsert_object("3", "FOREIGN-3", "foreign_sat", "X", None, "l1", "l2")
     upsert_object("4", "DEB-4", "debris", None, None, "l1", "l2")
+
+    # Protected (Group A) membership comes from a successful ingest resolution
+    # of an active registry entry, as in the real lifecycle -- not object type.
+    from backend.tests._registry_helpers import protect
+    protect("1", "ASSET-1")
     return tmp_path / "history_test.db"
 
 

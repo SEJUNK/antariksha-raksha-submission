@@ -32,7 +32,8 @@ def iso_api(demo_db, monkeypatch):
 
     def fake_ingest():
         insert_ingest_run(source="stub", used_cache=False, object_count=4,
-                          counts={"A": 1, "B": 1, "C": 2}, source_format="tle")
+                          counts={"A": 1, "B": 1, "C": 2}, source_format="tle",
+                          resolution={"A:TEST-ASSET-SAT": "90001"})  # as a real ingest records it
         return {"A": 1, "B": 1, "C": 2}, False
 
     monkeypatch.setattr(pipeline, "run_ingest", fake_ingest)

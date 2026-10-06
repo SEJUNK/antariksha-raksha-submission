@@ -269,7 +269,8 @@ const TIER_COLOR = {
 export default function AssetPanel({ objects, events, status, onRefresh, onSelectAsset, onShowDelta, onOpenCatalog }) {
   const { t } = useI18n()
   const { scale } = useUiScale()
-  const assets = objects.filter((o) => o.object_type === 'satellite' && o.criticality)
+  // Protected status is the backend's registry-derived flag, not the object type.
+  const assets = objects.filter((o) => o.protected === true && o.criticality)
   const eventTierByAsset = {}
   for (const e of events) {
     if (e.risk_tier === 'Critical' || !eventTierByAsset[e.object_a_id]) {

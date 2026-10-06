@@ -25,7 +25,10 @@ public GP data.
 
 ## 2. Proposed Solution
 
-ANTARIKSHA-RAKSHA is an end-to-end decision-support prototype that runs on a single laptop:
+ANTARIKSHA-RAKSHA is an end-to-end decision-support prototype. It can run end-to-end on a single machine for local
+development and evaluation (optionally with a local open-weight AI model), and it is also deployed as a hosted
+jury-validation environment (Vercel frontend + Railway backend, with AI disabled and the deterministic template
+fallback in use):
 
 1. **Perceive.** The system ingests public orbital data (CelesTrak GP/TLE) for a small working set of Indian assets,
    debris fragments and other active satellites. It labels data freshness (LIVE / CACHED / STALE) and keeps an offline

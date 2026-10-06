@@ -100,8 +100,8 @@ export function newObjectsViewModel(resp) {
 }
 
 // Public object catalog search/filter (client-side over the objects the app
-// already holds). 'protected' = configured Group A assets (type 'satellite'
-// with a criticality); nothing here changes protected status.
+// already holds). 'protected' is the backend's registry-derived flag
+// (/api/objects); it is never inferred from object type here.
 export const CATALOG_FILTERS = ['all', 'protected', 'debris', 'other']
 
 export function filterCatalogObjects(objects, query = '', filter = 'all') {
@@ -109,7 +109,7 @@ export function filterCatalogObjects(objects, query = '', filter = 'all') {
   const list = Array.isArray(objects) ? objects.filter((o) => o && typeof o === 'object') : []
   return list
     .filter((o) => {
-      const isProtected = o.object_type === 'satellite' && Boolean(o.criticality)
+      const isProtected = o.protected === true
       if (filter === 'protected' && !isProtected) return false
       if (filter === 'debris' && o.object_type !== 'debris') return false
       if (filter === 'other' && o.object_type !== 'foreign_sat') return false
@@ -121,7 +121,7 @@ export function filterCatalogObjects(objects, query = '', filter = 'all') {
       name: o.name || '—',
       noradId: o.norad_id || '—',
       typeKey: o.object_type ? `objType.${o.object_type}` : null,
-      protected: o.object_type === 'satellite' && Boolean(o.criticality),
+      protected: o.protected === true,
       demoAdjusted: Boolean(o.demo_adjusted),
     }))
     .sort((a, b) => Number(b.protected) - Number(a.protected) || String(a.name).localeCompare(String(b.name)))

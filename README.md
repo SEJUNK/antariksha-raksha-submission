@@ -168,7 +168,10 @@ total operational cost.
 - **Working set** (`data/working_set.json`, resolved by name/group at ingest time):
   - **Group A, protected assets:** 11 Indian satellites, each with a criticality tier (Tier 1 strategic, Tier 2
     observation, Tier 3 civil). After first start these seed the operator-managed protected-asset registry in the
-    database.
+    database. **Protected status (Group A) comes only from that registry**, as resolved against the catalogue by the
+    latest successful refresh: active entries are protected; suspended or retired entries stop being protected at
+    the next successful refresh. Object type, nationality, owner country and orbital characteristics are never used.
+    Existing events, observations and decisions remain historical records and are not rewritten.
   - **Group B, debris:** subsampled CelesTrak groups — Fengyun-1C debris (up to 50), Cosmos-2251 debris (up to 20),
     Iridium-33 debris (up to 10).
   - **Group C, other active satellites:** 12 non-Indian active satellites chosen by orbital-regime similarity to

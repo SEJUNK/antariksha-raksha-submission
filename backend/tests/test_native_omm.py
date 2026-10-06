@@ -138,7 +138,7 @@ def test_six_digit_omm_object_end_to_end(db):
     prof = separation_profile("44001", "270000", times[10].isoformat(), objects=rows)
     assert prof and min(prof["sep_km"]) < 5
     events = find_close_approaches(times, positions, threshold_km=10.0, step_seconds=60,
-                                   state_fns=make_state_functions(rows), objects=rows)
+                                   state_fns=make_state_functions(rows), objects=rows, group_a_ids={"44001"})
     assert any({e["object_a_id"], e["object_b_id"]} == {"44001", "270000"} for e in events)
 
 

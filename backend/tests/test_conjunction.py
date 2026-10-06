@@ -2,10 +2,21 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import numpy as np
+import pytest
 
 from backend.conjunction import find_close_approaches
 
 STEP_SECONDS = 60
+
+
+@pytest.fixture(autouse=True)
+def _registry_group_a(request, monkeypatch):
+    """In these synthetic grids "10001" is the object resolved to an active
+    protected-asset registry entry (Group A comes from the registry, not from
+    object_type)."""
+    if "demo_db" in request.fixturenames:
+        return  # full pipeline tests use the real registry resolution
+    monkeypatch.setattr("backend.conjunction.resolved_protected_norad_ids", lambda: {"10001"})
 
 
 def _make_times(n):

@@ -4,6 +4,17 @@ from unittest.mock import patch
 import numpy as np
 
 from backend.threat import detect_proximity_operations
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _registry_group_a(request, monkeypatch):
+    """In these synthetic grids "10001" is the object resolved to an active
+    protected-asset registry entry (protected status comes from the registry,
+    not from object_type)."""
+    if "demo_db" in request.fixturenames:
+        return  # full pipeline tests use the real registry resolution
+    monkeypatch.setattr("backend.threat.resolved_protected_norad_ids", lambda: {"10001"})
 
 STEP_SECONDS = 60
 

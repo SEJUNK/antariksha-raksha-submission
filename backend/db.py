@@ -929,6 +929,49 @@ def latest_ingest_run():
     )
 
 
+def latest_ingest_resolution():
+    """Named-entry resolution recorded by the latest SUCCESSFUL ingest:
+    ({"<group>:<name_query>": norad_id}, {"<group>:<name_query>": unresolved record}).
+    Unresolved entries that kept their previous object carry kept_norad_id."""
+    run = latest_ingest_run() or {}
+    try:
+        resolution = json.loads(run.get("resolution_json") or "{}") or {}
+    except (TypeError, ValueError):
+        resolution = {}
+    try:
+        unresolved = json.loads(run.get("unresolved_json") or "[]") or []
+    except (TypeError, ValueError):
+        unresolved = []
+    return resolution, {f"{u.get('group')}:{u.get('name_query')}": u for u in unresolved if isinstance(u, dict)}
+
+
+def resolved_entry_norad_id(entry_key, resolution, unresolved):
+    """NORAD ID a named entry resolved to in that ingest (or the previous
+    object it kept while unresolved), else None."""
+    return resolution.get(entry_key) or (unresolved.get(entry_key) or {}).get("kept_norad_id")
+
+
+def resolved_protected_norad_ids():
+    """Group A / protected membership of the CURRENT catalog: NORAD IDs that
+    the latest successful ingest resolved for the protected-asset registry
+    entries that were ACTIVE at that refresh (ingest reads only active
+    entries; unresolved entries keep their previous object).
+
+    This is the single source of protected status for screening and catalog
+    views. A registry edit (suspend / retire / resume / add) therefore takes
+    effect at the next successful refresh, exactly like the catalog itself;
+    object type, ownership, nationality and orbital characteristics play no
+    part."""
+    resolution, unresolved = latest_ingest_resolution()
+    keys = {k for k in resolution if k.startswith("A:")} | {k for k in unresolved if k.startswith("A:")}
+    ids = set()
+    for key in keys:
+        norad_id = resolved_entry_norad_id(key, resolution, unresolved)
+        if norad_id:
+            ids.add(str(norad_id))
+    return ids
+
+
 def latest_failed_ingest_run():
     """Latest refused ingest newer than the latest successful one, or None."""
     return _fetch_one(
@@ -1136,6 +1179,12 @@ class NotFoundError(LookupError):
 
 class InvalidTransitionError(ValueError):
     pass
+
+
+class ProtectedAssetSeedError(RuntimeError):
+    """The INITIAL protected-asset seed source is missing, unreadable or
+    has no valid group_a entry. Nothing is recorded, so seeding is retried
+    on the next call instead of leaving a permanently empty registry."""
 
 
 class LastActiveAssetError(ValueError):
@@ -1363,7 +1412,11 @@ def ensure_protected_assets_seeded(source_path):
     """Seed protected_assets ONCE from `source_path` (working_set.json)
     group_a. Afterwards the table is authoritative and this is a no-op
     (tracked in catalog_meta, so retiring/editing never re-seeds). Returns
-    the number of rows seeded (0 when already seeded)."""
+    the number of rows seeded (0 when already seeded).
+
+    During the initial seed of an empty registry, a missing/corrupt source
+    or one without any valid entry raises ProtectedAssetSeedError and records
+    nothing (already-seeded databases never read the source)."""
     conn = get_connection()
     try:
         has_table = conn.execute(
@@ -1384,8 +1437,18 @@ def ensure_protected_assets_seeded(source_path):
             try:
                 with open(source_path, "r", encoding="utf-8") as f:
                     entries = json.load(f).get("group_a", []) or []
-            except (OSError, ValueError):
-                entries = []
+                if not isinstance(entries, list):
+                    raise ValueError("group_a is not a list")
+            except (OSError, ValueError, AttributeError) as exc:
+                raise ProtectedAssetSeedError(
+                    f"Initial protected-asset seed source {source_path} is missing or invalid "
+                    f"({type(exc).__name__}); registry left unseeded.") from exc
+            valid = [e for e in entries if isinstance(e, dict) and e.get("name_query")
+                     and e.get("criticality") in ("Tier1", "Tier2", "Tier3")]
+            if not valid:
+                raise ProtectedAssetSeedError(
+                    f"Initial protected-asset seed source {source_path} has no valid group_a entry; "
+                    "registry left unseeded.")
             for e in entries:
                 if (not isinstance(e, dict) or not e.get("name_query")
                         or e.get("criticality") not in ("Tier1", "Tier2", "Tier3")):

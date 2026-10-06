@@ -235,6 +235,8 @@ def test_demo_run_uses_active_horizon(tmp_path, monkeypatch):
     d1, d2 = _make_tle(90002, mo_deg=90.0)
     upsert_object("90001", "TEST-ASSET-SAT", "satellite", "India", "Tier1", a1, a2)
     upsert_object("90002", "TEST-DEBRIS-FRAG", "debris", None, None, d1, d2)
+    from backend.tests._registry_helpers import protect
+    protect("90001", "TEST-ASSET-SAT")  # Group A via registry resolution, not object type
     assert _put(24)[0] == 200
     from backend.demo_seed import seed_event
     result = seed_event(asset_hint="TEST-ASSET", proximity=False, debris_hint="TEST-DEBRIS")

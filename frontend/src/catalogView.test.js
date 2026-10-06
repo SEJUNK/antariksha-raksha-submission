@@ -51,7 +51,7 @@ test('new objects: first seen, orbital data, review status; empty list; never im
 
 test('catalog search/filter: protected = configured assets only; debris / other; search by name or NORAD ID', () => {
   const objs = [
-    { norad_id: '44804', name: 'CARTOSAT-3', object_type: 'satellite', criticality: 'Tier2' },
+    { norad_id: '44804', name: 'CARTOSAT-3', object_type: 'satellite', criticality: 'Tier2', protected: true },
     { norad_id: '25730', name: 'FENGYUN 1C DEB', object_type: 'debris', criticality: null },
     { norad_id: '40697', name: 'SENTINEL-2A', object_type: 'foreign_sat', criticality: null },
     { norad_id: '270000', name: 'NEW OBJ', object_type: 'debris', criticality: null },
@@ -66,6 +66,16 @@ test('catalog search/filter: protected = configured assets only; debris / other;
   assert.equal(filterCatalogObjects(objs, 'zzz').length, 0)
   assert.ok(filterCatalogObjects(objs).every((o) => o.protected === (o.noradId === '44804')))
   assert.deepEqual(filterCatalogObjects(null), [])
+})
+
+test('catalog: protected comes only from the backend registry flag, never from object type', () => {
+  const objs = [
+    { norad_id: '50000', name: 'ORDINARY SAT', object_type: 'satellite', criticality: 'Tier1' },
+    { norad_id: '44804', name: 'CARTOSAT-3', object_type: 'satellite', criticality: 'Tier2', protected: true },
+    { norad_id: '60000', name: 'SUSPENDED ASSET', object_type: 'satellite', criticality: 'Tier1', protected: false },
+  ]
+  assert.deepEqual(filterCatalogObjects(objs, '', 'protected').map((o) => o.noradId), ['44804'])
+  assert.ok(filterCatalogObjects(objs).every((o) => o.protected === (o.noradId === '44804')))
 })
 
 test('last successful refresh: UTC line plus local time; absent -> nulls', () => {

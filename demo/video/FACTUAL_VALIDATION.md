@@ -29,8 +29,9 @@ UI or telemetry.**
 
 ## Wording decisions
 
-- The brief suggested "Monte Carlo was used only as a validation/reference technique during development". An earlier
-  version of the prototype did use a 5 000-sample Monte Carlo as its production estimator (see README "Before / after"),
+- The phrasing "Monte Carlo was used only as a validation/reference technique during development" was rejected. An
+  earlier version of the prototype did use a 5 000-sample Monte Carlo as its production estimator (see
+  `docs/technical/TESTING_VALIDATION.md`, Pc limitations),
   so that sentence would have been inaccurate. The narration instead says Monte Carlo "is not the production
   calculation; it is kept only as a test reference", which matches the provenance field quoted above.
 - The tracks are described as "SGP4-propagated predictions … not continuous sensor-level live telemetry".

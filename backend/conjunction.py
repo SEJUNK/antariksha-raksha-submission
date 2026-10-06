@@ -7,7 +7,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from backend.config import SCREENING_THRESHOLD_KM
-from backend.db import list_objects
+from backend.db import list_objects, resolved_protected_norad_ids
 
 logger = logging.getLogger(__name__)
 
@@ -109,15 +109,21 @@ def _encounter_candidates(dist, rel_speed, threshold_km, step_seconds):
 
 
 def find_close_approaches(times, positions_grid, threshold_km=SCREENING_THRESHOLD_KM, step_seconds=None,
-                          state_fns=None, objects=None, stats=None):
-    """Screen pairs where object A in Indian assets (Group A) against every
-    other tracked object. Intentional O(|A| x |others|) scope, not full O(n^2)
-    -- we protect Indian assets, we don't do global screening.
+                          state_fns=None, objects=None, stats=None, group_a_ids=None):
+    """Screen Group A objects against every other tracked object. Group A
+    consists of objects resolved to active operator-managed protected-asset
+    registry entries by the latest successful refresh
+    (db.resolved_protected_norad_ids()); it is never inferred from object
+    type, nationality, owner country or orbital characteristics, and a
+    registry edit applies from the next successful refresh. Intentional
+    O(|A| x |others|) scope, not full O(n^2) -- we protect the configured
+    assets, we don't do global screening.
 
     1. Coarse: candidate encounters from the 60 s grid (see
-       _encounter_candidates) -- padded by the grid-sampling distance so a
-       fast crossing whose true miss is under threshold is never dropped just
-       because no grid sample landed within threshold_km.
+       _encounter_candidates). The coarse grid is padded using relative speed
+       and a safety margin so that fast crossings are less likely to be missed
+       simply because a grid sample did not occur at the actual TCA.
+       Candidates are then refined using the propagator.
     2. Prefilter: refine_tca() on a quadratic interpolation of the grid;
        only encounters with interpolated miss < threshold + 0.5 km continue.
     3. Fine: refine_tca() with state_fns[norad_id](datetime) -> (pos_km,
@@ -126,10 +132,15 @@ def find_close_approaches(times, positions_grid, threshold_km=SCREENING_THRESHOL
        final.
     4. The unchanged threshold_km is applied to the REFINED miss distance.
 
+    TCA refinement is a local refinement around each candidate's grid
+    minimum, not a global optimisation over the whole screening window.
+
     A pair can yield several encounters in the window (one per qualifying
     close-approach episode); each is returned as its own event.
 
-    `objects` defaults to list_objects(). If `stats` is a dict, it receives
+    `objects` defaults to list_objects(); `group_a_ids` defaults to
+    resolved_protected_norad_ids() (unit tests with synthetic grids pass it
+    explicitly). If `stats` is a dict, it receives
     candidate_pairs, candidate_encounters, interp_refinements,
     sgp4_refinements and encounters.
 
@@ -143,7 +154,9 @@ def find_close_approaches(times, positions_grid, threshold_km=SCREENING_THRESHOL
     if objects is None:
         objects = list_objects()
     objects_by_id = {o["norad_id"]: o for o in objects}
-    group_a_ids = [nid for nid, o in objects_by_id.items() if o["object_type"] == "satellite" and nid in positions_grid]
+    protected_ids = (resolved_protected_norad_ids() if group_a_ids is None
+                     else {str(i) for i in group_a_ids})
+    group_a_ids = [nid for nid in objects_by_id if str(nid) in protected_ids and nid in positions_grid]
     other_ids = [nid for nid in positions_grid if nid not in group_a_ids]
 
     refinement_base = (f"Bounded minimisation of |r_rel| within +/-1 grid step ({step_seconds:g} s) "

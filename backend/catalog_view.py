@@ -18,17 +18,18 @@ catalog baseline). It does not mean newly launched, and an object missing
 from a later ingest is not treated as retired.
 """
 
-import json
 from collections import Counter
 
 from backend.config import WORKING_SET_PATH
 from backend.db import (
     ensure_protected_assets_seeded,
     first_seen_baseline,
-    latest_ingest_run,
+    latest_ingest_resolution,
     list_new_objects,
     list_objects,
     list_protected_assets,
+    resolved_entry_norad_id,
+    resolved_protected_norad_ids,
 )
 from backend.propagate import MAX_TLE_AGE_DAYS, tle_age_days_for
 
@@ -53,16 +54,7 @@ def _age(obj):
 
 
 def _resolution_and_unresolved():
-    run = latest_ingest_run() or {}
-    try:
-        resolution = json.loads(run.get("resolution_json") or "{}") or {}
-    except (TypeError, ValueError):
-        resolution = {}
-    try:
-        unresolved = json.loads(run.get("unresolved_json") or "[]") or []
-    except (TypeError, ValueError):
-        unresolved = []
-    return resolution, {f"{u.get('group')}:{u.get('name_query')}": u for u in unresolved if isinstance(u, dict)}
+    return latest_ingest_resolution()
 
 
 def protected_asset_registry():
@@ -72,7 +64,7 @@ def protected_asset_registry():
     assets = []
     for entry in _load_group_a():
         key = f"A:{entry['name_query']}"
-        norad_id = resolution.get(key) or (unresolved.get(key) or {}).get("kept_norad_id")
+        norad_id = resolved_entry_norad_id(key, resolution, unresolved)
         obj = objects.get(norad_id) if norad_id else None
         age = _age(obj) if obj else None
         if obj is None:
@@ -122,6 +114,7 @@ def protected_asset_registry():
 
 def new_object_review():
     rows = list_new_objects()
+    protected_ids = resolved_protected_norad_ids()
     out = []
     for o in rows:
         review = o.get("review")
@@ -130,9 +123,10 @@ def new_object_review():
             "name": o["name"],
             "object_type": o["object_type"],
             "group": GROUP_LABELS.get(o["object_type"]),
-            # Only Group A configuration entries are ingested as type
-            # 'satellite', so protected status still comes from configuration.
-            "protected": o["object_type"] == "satellite",
+            # Protected status comes only from the operator-managed registry,
+            # as resolved by the latest successful refresh (registry edits apply
+            # at the next refresh). Object type is never used.
+            "protected": str(o["norad_id"]) in protected_ids,
             "first_seen": o.get("first_seen"),
             "source": CATALOG_SOURCE,
             "source_format": o.get("source_format") or "tle",
