@@ -92,8 +92,8 @@ operator decided, and who decided it.
 | **DETECT** | Screens each protected asset against every other object using close-approach *episodes* and a 10 km candidate threshold; separately flags sustained proximity (another active satellite within 25 km for at least 10 consecutive 1-minute samples). | `backend/conjunction.py`, `backend/threat.py` |
 | **UNDERSTAND** | Refines the time of closest approach (TCA) with SGP4 re-evaluation, then evaluates miss distance, relative velocity and the collision-probability indicator at that same refined instant; records per-event provenance. | `backend/conjunction.py`, `backend/risk_score.py`, `backend/provenance.py` |
 | **PRIORITISE** | Assigns a risk tier from the probability indicator and a priority score weighted by the asset's criticality tier. | `backend/risk_score.py`, `backend/config.py` |
-| **EXPLAIN** | A local LLM drafts a plain-language brief from the computed values; a deterministic fact check, a tone guard and a second-pass consistency review check it; a deterministic template is used whenever the AI is unavailable, disabled or fails the checks. | `backend/brief_agent.py` |
-| **DECIDE** | An authorised human operator approves (acknowledges, for proximity events) or dismisses (with a stated reason). The decision is recorded with the acting user and role. Nothing is sent to any spacecraft. | `backend/main.py`, `backend/auth.py`, `backend/db.py`, `frontend/src/components/ApprovalPanel.jsx` |
+| **EXPLAIN** | A local LLM drafts a plain-language brief from the computed values; a deterministic fact check, a tone guard and a second-pass consistency review check it; a deterministic template is used whenever the AI is unavailable or disabled, or the regenerated draft still fails the tone guard; a draft that still fails the fact check after one redraft is shown with a visible FLAGGED status. | `backend/brief_agent.py` |
+| **DECIDE** | An authorised human operator approves (acknowledges, for proximity events) or dismisses (the console requires a stated reason). The decision is recorded with the acting user and role. Nothing is sent to any spacecraft. | `backend/main.py`, `backend/auth.py`, `backend/db.py`, `frontend/src/components/ApprovalPanel.jsx` |
 
 ## 4. Architecture
 
@@ -240,7 +240,7 @@ Properties and boundaries:
 - **No covariance from the data.** TLEs carry none and CDMs are not ingested; the uncertainty is assumed, not
   measured.
 - **Monte Carlo is used only as a test reference:** the tests cross-check the analytic value against the
-  non-central chi-square CDF and a projected Monte Carlo simulation. Monte Carlo is not used for production scoring.
+  non-central chi-square CDF and a projected Monte Carlo simulation. Monte Carlo is not used for the scoring the application performs.
 - Absolute values are indicative only and are not validated against an authoritative Pc.
 
 ## 11. Risk prioritisation
@@ -272,7 +272,7 @@ Properties and boundaries:
 ## 13. Human-in-the-loop governance
 
 - Every event requires an explicit human decision: **approve** (shown as **acknowledge** for proximity events) or
-  **dismiss** with a stated reason. Decisions are idempotent and record the acting user and role.
+  **dismiss** with a stated reason (required by the console; the API itself accepts an empty reason). Decisions are idempotent and record the acting user and role.
 - **No command is sent to any spacecraft.** There is no command, uplink or manoeuvre-execution path in the code.
   The Δv figure shown in the UI is a fixed illustrative estimate (≈ 0.046 m/s, the same for every event), not a
   manoeuvre recommendation.
@@ -307,6 +307,8 @@ This is an accountability aid for a prototype. It is **not tamper-proof**: anyon
 database can alter or replace it.
 
 ## 15. Deployment architecture
+
+The hosted deployment is a validation/jury environment, not an operational deployment.
 
 ```
 Browser ─▶ Vercel (static SPA + /api same-origin proxy function) ─▶ Railway (FastAPI, Docker, 1 process)
@@ -403,7 +405,8 @@ python -m scripts.seed_demo_event --asset RISAT-2BR1 --proximity --foreign SENTI
 ```
 
 Demo events are flagged `is_demo`, labelled **DEMO SCENARIO**, and never modify real catalogue data. A normal
-refresh returns to live data.
+refresh returns to live data. Until then the demo run's events replace the event feed, and a reason given when
+dismissing a demo event is, like any other, among the recent rejection reasons added to later AI prompts.
 
 ## Running the tests
 

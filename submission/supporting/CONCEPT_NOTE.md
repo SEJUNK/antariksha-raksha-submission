@@ -47,7 +47,7 @@ fallback in use):
    - Events are ranked by criticality-weighted priority.
    - A **local open-weight LLM** (Ollama, llama3.2:3b) drafts a plain-language brief from the computed numbers. A
      **consistency check** follows: a deterministic fact check of numbers, risk tier, recommendation and intent language,
-     plus a second pass by the same model. This is not independent validation. If the LLM is unavailable, a deterministic template takes over.
+     plus a second pass by the same model. This is not independent validation. If the LLM is unavailable or disabled (as on the hosted deployment), or a regenerated draft still fails the tone guard, a deterministic template takes over.
 3. **Decide (human-gated).**
    - The operator sees the brief, the numbers, a separation-profile chart, a data-confidence indicator and an
      **illustrative Δv estimate**. The Δv estimate is a fixed approximation and not a maneuver recommendation.
@@ -122,7 +122,7 @@ The end-to-end prototype includes:
   persistent host with its SQLite database on a mounted volume (`docs/technical/DEPLOYMENT.md`); the backend itself is not
   serverless
 
-Automated tests are in `backend/tests` (see `docs/technical/TESTING_VALIDATION.md` for current results). No measured
+Automated tests are in `backend/tests` and `frontend/src` (see `docs/technical/TESTING_VALIDATION.md` for current results). No measured
 performance benchmarks are claimed here.
 
 ## 5. Roadmap (planning, not commitments)

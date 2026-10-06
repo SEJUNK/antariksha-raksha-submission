@@ -18,29 +18,29 @@ UI or telemetry.**
 | 9 | Deterministic analytic encounter-plane indicator | provenance.probability.deterministic = True; method: "Simplified analytic encounter-plane indicator: the relative …" | ✓ verified |
 | 10 | Simplified analytic indicator — NOT an operational covariance-based Pc | provenance.probability.label = "Simplified analytic collision-probability indicator -- NOT an operational covariance-based Pc" | ✓ verified |
 | 11 | Simplified isotropic uncertainty; 20 m hard-body radius | sigma_km 0.1132 per object; hard_body_radius_km 0.02; uncertainty_model: "Simplified prototype estimate: isotropic Gaussian position sigma per o…" | ✓ verified |
-| 12 | Monte Carlo is not the production calculation; kept only as a test reference | provenance.probability.samples = None; validation_reference = "Monte Carlo sampling is kept only as a test reference for the analytic formula" | ✓ verified |
+| 12 | Monte Carlo is not the production calculation (i.e. not the scoring path the application uses); kept only as a test reference | provenance.probability.samples = None; validation_reference = "Monte Carlo sampling is kept only as a test reference for the analytic formula" | ✓ verified |
 | 13 | Critical tier; criticality raises priority for ordering only | risk.tier Critical; criticality Tier2 ×2; priority_basis pc_x_criticality; priority 15422.616 | ✓ verified |
 | 14 | AI does not calculate orbit, TCA, miss distance, Pc; does not command a spacecraft | provenance.ai.involved_in_numerical_calculation = False; UI "AI DID NOT" list; no command endpoint exists (README, backend/main.py) | ✓ verified |
-| 15 | On the hosted deployment the AI layer is unavailable; deterministic template shown | provenance.ai.used = False, generated_by = fallback_template; header "AI FALLBACK ACTIVE"; /api/health ai.status AI_FALLBACK_ACTIVE | ✓ verified |
+| 15 | On the hosted deployment the AI layer is unavailable; deterministic template shown | Disabled by configuration on the hosted backend (`ANTARIKSHA_AI_MODE=disabled`); provenance.ai.used = False, generated_by = fallback_template; header "AI FALLBACK ACTIVE"; /api/health ai.status AI_FALLBACK_ACTIVE | ✓ verified |
 | 16 | Decision recorded with account and role; no command sent | decision approved at 2026-10-05T17:40:24.554345+00:00 by ADMINISTRATOR; UI "Records an operator decision in the audit trail. No command is sent to any spacecraft." | ✓ verified |
-| 17 | Weaker for slow / co-orbital encounters | provenance.probability.limitations: "Short-encounter assumption … weak for slow or co-orbital encounters" | ✓ verified |
+| 17 | Weaker for slow / co-orbital encounters (narration places this after "a fixed hard-body radius"; the weakness comes from the short-encounter assumption, not the radius) | provenance.probability.limitations: "Short-encounter assumption … weak for slow or co-orbital encounters" | ✓ verified |
 | 18 | No authoritative operational validation; future work (CDM, covariance, validation) | README §16–17; assessment basis: "Covariance / CDM — not available" | ✓ verified |
-| 19 | Not a replacement for ISRO / IS4OM / NETRA; no partnerships | README key facts; concept note §1 | ✓ verified |
+| 19 | Not a replacement for established orbital tracking / SSA capabilities (as narrated) | Narration and storyboard closing; README key facts and concept note §1 (no replacement of ISRO / IS4OM / NETRA, no partnerships) as supporting context | ✓ verified |
 
 ## Wording decisions
 
 - The phrasing "Monte Carlo was used only as a validation/reference technique during development" was rejected. An
-  earlier version of the prototype did use a 5 000-sample Monte Carlo as its production estimator (see
+  earlier version of the prototype did use a 5 000-sample Monte Carlo as its scoring estimator (see
   `docs/technical/TESTING_VALIDATION.md`, Pc limitations),
   so that sentence would have been inaccurate. The narration instead says Monte Carlo "is not the production
   calculation; it is kept only as a test reference", which matches the provenance field quoted above.
 - The tracks are described as "SGP4-propagated predictions … not continuous sensor-level live telemetry".
 - The collision event is explicitly a controlled DEMO scenario. The corner label "CONTROLLED DEMO SCENARIO — NOT AN
   OPERATIONAL WARNING" stays on screen throughout 1:47–3:37.
-- The AI layer is shown honestly as unavailable on the hosted deployment (deterministic template).
+- The AI layer is shown honestly as unavailable on the hosted deployment (it is disabled by configuration there; the deterministic template is used).
 - Future work is visually labelled "not yet built".
 
-## Production side effects (disclosed)
+## Side effects on the hosted validation environment (disclosed)
 
 Capturing the demonstration required these real actions on the deployed system, all approved by the project owner:
 "Exit demo — refresh live data" (17:39 UTC), one controlled collision demo (screening run #103, event 98), one

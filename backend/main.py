@@ -563,7 +563,8 @@ def refresh(principal: Principal = Depends(require_permission("refresh"))):
 # trigger the scheduled refresh (with all scheduled-run guards). The secret
 # is never logged or echoed.
 # ---------------------------------------------------------------------------
-@app.api_route(SCHEDULER_ENDPOINT, methods=["GET", "POST"])
+@app.get(SCHEDULER_ENDPOINT, operation_id="scheduled_refresh_get")
+@app.post(SCHEDULER_ENDPOINT, operation_id="scheduled_refresh_post")
 def scheduled_refresh_endpoint(request: Request, wait: bool = False):
     from backend.scheduler import run_scheduled_refresh
 

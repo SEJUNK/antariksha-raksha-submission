@@ -49,6 +49,8 @@ def test_missing_required_object(tmp_path, monkeypatch):
     init_db()
     l1, l2 = _make_tle(90001)
     upsert_object("90001", "TEST-ASSET-SAT", "satellite", "India", "Tier1", l1, l2)
+    from backend.tests._registry_helpers import protect
+    protect("90001", "TEST-ASSET-SAT")  # the asset is protected via the registry; only the counterpart is missing
     with pytest.raises(DemoScenarioError) as exc:
         seed_event(asset_hint="TEST-ASSET", proximity=True)
     assert exc.value.reason == "missing_object" and exc.value.status_code == 409

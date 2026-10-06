@@ -16,8 +16,8 @@ backend\venv\Scripts\python.exe -m pytest backend\tests -v
 
 Frontend: `npm test` (Node's built-in test runner) and `npm run build`, run in `frontend/`.
 
-**Recorded validation result for this submission snapshot (2026-10-06):** 634 backend tests passed, 1 backend test
-skipped; 163/163 frontend tests passed; frontend production build passed. Total automated tests passing: **797**, with
+**Recorded validation result for this submission snapshot (2026-10-06):** 652 backend tests passed, 1 backend test
+skipped; 163/163 frontend tests passed; frontend production build passed. Total automated tests passing: **815**, with
 1 skipped. The skipped test (`test_ingest_resolution.py`) requires a local TLE cache, which is not shipped in this
 repository.
 
@@ -46,6 +46,7 @@ network access or Ollama.
 | Prototype RBAC | `test_rbac`, `test_auth`, `frontend/src/auth.test.js`, `api.test.js`, `governance.test.js`, `i18n/authI18n.test.js` | No default credentials; PBKDF2 hashes never returned; stored hashes below the PBKDF2 iteration minimum or with malformed base64 are rejected; login / logout / `me`; every protected route refuses a missing session (401) and a missing permission (403) for each of VIEWER / OPERATOR / ASSET_MANAGER / ADMINISTRATOR; CSRF header required on state-changing requests; deactivation and role changes apply on the next request; the last active ADMINISTRATOR cannot be demoted or deactivated; one-time env bootstrap and CLI lifecycle (audited as `cli`); decisions and object reviews record actor user and role, legacy rows labelled; `governance_audit` refuses UPDATE / DELETE; optional API-key gate still works; frontend sends the CSRF header and gates controls by permission; auth/admin strings present in all 11 languages |
 | Protected-asset registry management | `test_protected_assets`, `frontend/src/governance.test.js` | Seeded once from `working_set.json` Group A (not reseeded after retirement); legacy DB migrates without data loss; add / edit (criticality, note, exact match) / suspend / resume / retire with validation and case-insensitive duplicate check; retired is terminal; refusal to leave zero active assets; non-ASSET_MANAGER roles get 403; every change audited; changes never touch existing events or observations; ingest reads only active entries, so changes apply at the next refresh; a missing/corrupt INITIAL seed source (or one without a valid entry) is refused and recorded as unseeded, while an already-seeded registry ignores the source |
 | Protected-asset governance (Group A) | `test_protected_asset_governance`, `test_conjunction`, `test_threat`, `test_dwell`, `frontend/src/catalogView.test.js` | Group A / protected status comes only from active registry entries as resolved by the latest successful ingest (real ingest path, network stubbed): ordinary satellite-typed objects, debris and foreign satellites are not protected; suspended / retired entries leave Group A at the next successful refresh and a reactivated entry returns; a registry edit alone or a failed refresh does not change the current scope; unresolved entries keep their previous object; registry edits do not rewrite existing events; `new_object_review`, `/api/objects` `protected` and the proximity watch use the same source; review acknowledgement changes nothing |
+| Jury attack cases | `test_jury_attack_cases` | One end-to-end test per likely review question, on the real code paths: (A) a satellite-typed object is never protected by type, and suspension applies only at the next successful refresh; (B) a failed refresh changes neither the catalogue nor protected scope; (C) stale (> 30 days) and unparseable TLEs are excluded from screening and display; (D) AI disabled (no network call), unreachable or sensational twice gives the deterministic template; (E) wrong numbers in AI text are flagged, and stored TCA / miss distance / Pc / tier are computed before and unchanged by a hostile AI brief; (F) decisions need an authenticated principal with `decide`, record actor and role from the session, and no route is a command / uplink / manoeuvre path; (G) the demo asset is always a registry-resolved protected asset (never an ordinary satellite, never a suspended or retired one after refresh; a clear 409 error when none exists) and demo seeding changes neither catalogue nor governance |
 | Screening-horizon provenance | `test_screening_horizon`, `frontend/src/horizonToneGuard.test.js` | Status payload reports the window and step persisted with the latest screening run (72 h / 60 s in the current configuration); each event's assessment basis uses its own run's horizon and step; legacy events without stored values fall back to configuration and are labelled as such |
 | AI tone guard | `test_tone_guard`, `frontend/src/horizonToneGuard.test.js` | Whole-word detection of unsupported sensational certainty (catastrophic, disastrous, devastating, inevitable, guaranteed, unavoidable, certain, imminent and variants); "uncertain" / "uncertainty" and legitimate tier words never match; one redraft; a second failure yields the deterministic template with `review_status = tone_guard_fallback`, shown as "DETERMINISTIC TEMPLATE (AI draft failed the tone guard)" |
 | Configurable screening horizon | `test_settings_horizon` | Default 72 h; only 24/48/72/96/120 (integers) accepted; ADMINISTRATOR-only (others 403); every change audited; a change applies to the next screening run and each run keeps the horizon it used |
@@ -93,8 +94,8 @@ network access or Ollama.
 - SQLite is used with default settings. **WAL mode is not enabled** in `backend/db.py`.
 - Concurrent writers from separate processes are not a supported configuration.
 - `conjunction_events` and `mission_briefs` are rebuilt on every screening run.
-- `decision_log`, `screening_runs`, `ingest_runs`, `users`, `sessions`, `governance_audit` and `protected_assets`
-  are kept across runs.
+- `decision_log`, `screening_runs`, `ingest_runs`, `refresh_attempts`, `event_observations` (event history),
+  `object_reviews`, `app_settings`, `users`, `sessions`, `governance_audit` and `protected_assets` are kept across runs.
 - `governance_audit` is append-only at the database level (triggers), but there is no tamper protection against
   someone with file access to the SQLite database.
 
@@ -121,8 +122,8 @@ not benchmarks.
 | Return to live | `POST /api/refresh` → `using_cache: false`, 0 events, status back to `live` / **LIVE DATA**, demo override cleared. |
 | Health | `ollama_reachable: true`, `object_count: 103`, `using_cache: false`. |
 
-This run used a local Ollama model. The hosted Railway validation environment can operate with AI disabled; the
-deterministic fallback remains available.
+This run used a local Ollama model. The hosted Railway validation environment operates with AI disabled
+(`ANTARIKSHA_AI_MODE=disabled`), so it always shows deterministic template briefs.
 
 ---
 

@@ -297,10 +297,13 @@ def test_demo_scenario_failure_on_missing_target_type(tmp_path, monkeypatch):
     debris_l1, debris_l2 = _make_tle(90002, mo_deg=90.0)
     upsert_object("90001", "TEST-ASSET-SAT", "satellite", "India", "Tier1", asset_l1, asset_l2)
     upsert_object("90002", "TEST-DEBRIS-FRAG", "debris", None, None, debris_l1, debris_l2)
+    from backend.tests._registry_helpers import protect
+    protect("90001", "TEST-ASSET-SAT")  # the asset is valid, so only the missing target can fail
     # No foreign_sat object in this DB at all.
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(RuntimeError) as exc:
         seed_event(asset_hint="TEST-ASSET", proximity=True)
+    assert "protected asset" not in str(exc.value)
 
 
 def test_demo_scenario_failure_when_asset_tle_too_stale_to_propagate(demo_db, monkeypatch):

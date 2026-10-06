@@ -28,7 +28,7 @@ from sgp4.api import Satrec, WGS72, jday
 from sgp4.exporter import export_tle
 
 from backend.conjunction import refine_tca
-from backend.db import init_db, list_events, list_objects, set_demo_override
+from backend.db import init_db, list_events, list_objects, resolved_protected_norad_ids, set_demo_override
 from backend.orbital_formats import satrec_for, tle_representable
 from backend.pipeline import PIPELINE_LOCK, run_screening_and_briefs
 from backend.propagate import MAX_TLE_AGE_DAYS
@@ -111,6 +111,26 @@ def _pick(objects, object_type, name_hint=None):
             reason="missing_object", status_code=409,
         )
     return candidates[0]
+
+
+def _pick_protected_asset(objects, name_hint=None):
+    """The demo's protected asset: chosen only among catalog objects resolved
+    to active protected-asset registry entries by the latest successful
+    refresh -- the same set the screening pipeline uses as Group A (never by
+    object type). `name_hint` still prefers a matching name within that set."""
+    protected = resolved_protected_norad_ids()
+    pool = [o for o in objects if str(o["norad_id"]) in protected and tle_representable(o)]
+    if not pool:
+        raise DemoScenarioError(
+            "No protected asset in the current catalog -- configure an active entry in the protected-asset "
+            "registry and run a successful catalog refresh (`/api/refresh`) first.",
+            reason="missing_object", status_code=409,
+        )
+    if name_hint:
+        matches = [o for o in pool if name_hint.upper() in o["name"].upper()]
+        if matches:
+            return matches[0]
+    return pool[0]
 
 
 def _parse_tle(obj):
@@ -464,7 +484,7 @@ def _seed_event_locked(asset_hint, proximity, separation_km, debris_hint, foreig
 
     objects = list_objects()
 
-    asset = _pick(objects, "satellite", asset_hint)
+    asset = _pick_protected_asset(objects, asset_hint)
     if proximity:
         target = _pick(objects, "foreign_sat", foreign_hint)
         separation_km = separation_km or 10.0

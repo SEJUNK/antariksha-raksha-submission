@@ -325,8 +325,11 @@ def run_full_pipeline():
 # ONE entry point, run_refresh_pipeline(trigger, actor), wraps the refresh
 # (run_full_pipeline) with: overlap protection, scheduled-run safety guards,
 # a refresh_attempts row, the screening run's trigger, and a governance
-# audit row. Failures leave the last-known-good catalog/events untouched
-# (ingest refuses/fails before reconciling; screening never starts).
+# audit row. Ingest-phase failures leave the last-known-good catalog/events
+# untouched (ingest refuses/fails before reconciling; screening never starts).
+# A failure during screening itself (after a successful ingest) is recorded as
+# internal_error and can leave the event feed partial until the next
+# successful refresh.
 #
 # Overlap: _REFRESH_GUARD is a plain Lock taken non-blocking -- a second
 # refresh (manual or scheduled) while one is running returns immediately

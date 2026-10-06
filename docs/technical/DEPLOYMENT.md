@@ -65,7 +65,7 @@ What is deployed (Vercel project **Root Directory = `frontend`**):
 
 | Item | File | Notes |
 |---|---|---|
-| Static app | `frontend/vercel.json` → `npm run build` → `dist/` | SPA rewrite for every non-`/api` path; NASA Blue Marble texture is served from `dist/textures/` (no runtime remote assets). |
+| Static app | `frontend/vercel.json` → `npm run build` → `dist/` | SPA rewrite for every non-`/api` path; NASA Blue Marble texture is served from `dist/textures/` (the texture needs no runtime remote request; web fonts load from Google Fonts when online). |
 | Same-origin API proxy | `frontend/api/proxy.js` | `vercel.json` rewrites `/api/<path>` → `/api/proxy?__ar_path=<path>` (Vercel Functions outside Next.js have no `[...catchAll]` filenames). |
 | Optional cron relay | `frontend/api/cron/refresh.js` | Inert unless a Vercel Cron job is added (Pro plan, §5). Fails closed without `CRON_SECRET`. |
 
@@ -104,7 +104,7 @@ the venv) and `railway.json` (Dockerfile builder, `numReplicas: 1`, health check
 
 Use the **backend's internal scheduler** (`ANTARIKSHA_SCHEDULER_MODE=internal`): every 2 hours at even UTC hours
 (`0 */2 * * *`), with the existing safeguards (skip if a successful refresh finished < 110 min ago, skip within 60 min
-of a DEMO run, no overlapping refreshes, last-known-good data preserved on failure). Manual refresh always remains
+of a DEMO run, no overlapping refreshes, last-known-good catalogue preserved when ingest fails). Manual refresh always remains
 available to OPERATOR and above. This needs no Vercel Cron and no paid Vercel plan.
 
 `frontend/vercel.json` therefore contains **no `crons` entry**: Vercel's Hobby plan only allows once-per-day cron jobs
